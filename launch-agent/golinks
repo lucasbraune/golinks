@@ -3,5 +3,6 @@
 # Named "golinks" so macOS shows it as such in Login Items / Background Items
 # instead of the generic "ruby". Runs Ruby via the rbenv shim so it follows
 # rbenv version changes.
-DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec "$HOME/.rbenv/shims/ruby" "$DIR/server.rb"
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+REPO_DIR=$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)
+exec "$HOME/.rbenv/shims/ruby" "$REPO_DIR/server.rb"

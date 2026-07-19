@@ -7,7 +7,7 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>__REPO_DIR__/golinks</string>
+        <string>__REPO_DIR__/launch-agent/golinks</string>
     </array>
 
     <key>WorkingDirectory</key>

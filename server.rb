@@ -42,19 +42,16 @@ helpers do
   def h(text)
     Rack::Utils.escape_html(text)
   end
-
-  def go(query)
-    current_links = links
-    target = redirect_target(query, current_links)
-    if target
-      redirect target, 302
-    else
-      grouped = current_links.group_by { |_name, entry| entry[:url] }
-      erb :index, locals: { grouped: grouped, links_file: LINKS_FILE }
-    end
-  end
 end
 
 get '/' do
-  go params['query']
+  query = params['query']
+  current_links = links
+  target = redirect_target(query, current_links)
+  if target
+    redirect target, 302
+  else
+    grouped = current_links.group_by { |_name, entry| entry[:url] }
+    erb :index, locals: { grouped: grouped, links_file: LINKS_FILE }
+  end
 end
