@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Go links</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <h1>Go links</h1>
+  <table>
+    <tr><th>Link</th><th>Destination</th></tr>
+    <% grouped.each do |url, pairs| %>
+    <tr>
+      <td><%= pairs.map { |name, _url| "<a href=\"/?query=#{h(name)}\">#{h(name)}</a>" }.join(', ') %></td>
+      <td><a href="<%= h(url) %>"><%= h(url) %></a></td>
+    </tr>
+    <% end %>
+  </table>
+  <footer>
+    Edit links: <a href="vscode://file<%= h(links_file) %>"><%= h(links_file) %></a>
+  </footer>
+</body>
+</html>

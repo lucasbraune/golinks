@@ -1,0 +1,7 @@
+#!/bin/sh
+# Launcher for the golinks redirect server.
+# Named "golinks" so macOS shows it as such in Login Items / Background Items
+# instead of the generic "ruby". Runs Ruby via the rbenv shim so it follows
+# rbenv version changes.
+DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "$HOME/.rbenv/shims/ruby" "$DIR/server.rb"

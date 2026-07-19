@@ -1,0 +1,7 @@
+name,url,search_url
+wiki,https://www.wikipedia.org,https://en.wikipedia.org/w/index.php?search=%s
+google,https://www.google.com,https://www.google.com/search?q=%s
+yt,https://www.youtube.com,https://www.youtube.com/results?search_query=%s
+youtube,https://www.youtube.com,https://www.youtube.com/results?search_query=%s
+econ,https://www.economist.com,https://www.economist.com/search?q=%s
+economist,https://www.economist.com,https://www.economist.com/search?q=%s
