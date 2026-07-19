@@ -7,11 +7,11 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/lucasbraune/dev/golinks/golinks</string>
+        <string>__REPO_DIR__/golinks</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/lucasbraune/dev/golinks</string>
+    <string>__REPO_DIR__</string>
 
     <key>EnvironmentVariables</key>
     <dict>
@@ -26,9 +26,9 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>/Users/lucasbraune/Library/Logs/golinks.log</string>
+    <string>__HOME__/Library/Logs/golinks.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/lucasbraune/Library/Logs/golinks.error.log</string>
+    <string>__HOME__/Library/Logs/golinks.error.log</string>
 </dict>
 </plist>

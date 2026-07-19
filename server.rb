@@ -1,3 +1,5 @@
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('Gemfile', __dir__)
+require 'bundler/setup'
 require 'sinatra'
 require 'csv'
 
@@ -5,7 +7,7 @@ PORT = ENV.fetch('PORT', 51242).to_i
 set :bind, '127.0.0.1'
 set :port, PORT
 
-LINKS_FILE = File.expand_path('links.csv', __dir__)
+LINKS_FILE = File.expand_path('data/links.csv', __dir__)
 
 # Reload on every request so edits to the CSV apply without a restart.
 # Each entry is { url:, search_url: }; search_url is an optional template

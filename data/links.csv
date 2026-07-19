@@ -5,3 +5,4 @@ yt,https://www.youtube.com,https://www.youtube.com/results?search_query=%s
 youtube,https://www.youtube.com,https://www.youtube.com/results?search_query=%s
 econ,https://www.economist.com,https://www.economist.com/search?q=%s
 economist,https://www.economist.com,https://www.economist.com/search?q=%s
+gh,https://github.com/,https://github.com/search?q=%s
