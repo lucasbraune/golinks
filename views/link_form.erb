@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= h(heading) %> &mdash; Go links</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%2363b37b'/%3E%3C/svg%3E">
+</head>
+<body>
+  <h1><%= h(heading) %></h1>
+
+  <div class="card form-card">
+    <% if error %>
+      <p class="form-error"><%= h(error) %></p>
+    <% end %>
+    <form method="post" action="<%= h(action) %>">
+      <label>
+        Name
+        <% if original_name %>
+          <input type="hidden" name="name" value="<%= h(original_name) %>">
+          <input type="text" name="new_name" value="<%= h(name) %>" required autofocus>
+        <% else %>
+          <input type="text" name="name" value="<%= h(name) %>" placeholder="wiki" required autofocus>
+        <% end %>
+      </label>
+
+      <label>
+        Destination URL
+        <input type="text" name="url" value="<%= h(url) %>" placeholder="https://en.wikipedia.org" required>
+      </label>
+
+      <label>
+        Search URL <span class="hint">optional &mdash; use %s for the search terms</span>
+        <input type="text" name="search_url" value="<%= h(search_url) %>" placeholder="https://en.wikipedia.org/w/index.php?search=%s">
+      </label>
+
+      <fieldset class="aliases-field">
+        <legend>Aliases <span class="hint">optional &mdash; other names that go to the same place</span></legend>
+        <div class="alias-list" id="alias-list">
+          <% (aliases.empty? ? [''] : aliases).each do |a| %>
+          <div class="alias-row">
+            <input type="text" name="aliases[]" value="<%= h(a) %>" placeholder="yt">
+            <button type="button" class="remove-alias" aria-label="Remove alias">&times;</button>
+          </div>
+          <% end %>
+        </div>
+        <button type="button" id="add-alias" class="link-button add-alias">+ Add alias</button>
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="submit">Save</button>
+        <a class="cancel" href="/">Cancel</a>
+      </div>
+    </form>
+
+    <% if original_name %>
+    <form method="post" action="/<%= h(original_name) %>" class="delete-form"
+          onsubmit="return confirm('Delete this link?')">
+      <input type="hidden" name="_method" value="delete">
+      <button type="submit" class="link-button danger">Delete this link</button>
+    </form>
+    <% end %>
+  </div>
+
+  <p class="eyebrow"><span class="dot"></span>localhost:<%= PORT %></p>
+
+  <script>
+    document.getElementById('alias-list').addEventListener('click', (event) => {
+      if (!event.target.classList.contains('remove-alias')) return;
+      const rows = document.querySelectorAll('.alias-row');
+      const row = event.target.closest('.alias-row');
+      if (rows.length > 1) {
+        row.remove();
+      } else {
+        row.querySelector('input').value = '';
+      }
+    });
+
+    document.getElementById('add-alias').addEventListener('click', () => {
+      const list = document.getElementById('alias-list');
+      const row = document.createElement('div');
+      row.className = 'alias-row';
+      row.innerHTML =
+        '<input type="text" name="aliases[]" placeholder="yt">' +
+        '<button type="button" class="remove-alias" aria-label="Remove alias">&times;</button>';
+      list.appendChild(row);
+      row.querySelector('input').focus();
+    });
+  </script>
+</body>
+</html>

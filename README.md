@@ -82,6 +82,27 @@ The file is reloaded on every request, so edits apply without restarting the
 server. A built-in `go` entry points back to this server, so `go go` shows the
 link list.
 
+### Adding, editing, and aliasing links
+
+Links can be managed by editing `data/links.csv` directly, or from the browser
+at `go/go`: **Add link** at the top adds a new one, and hovering a row reveals
+an edit button (&#9998;) at the right of its destination that opens an edit
+page (which also has a **Delete this link** action). Edits write straight to
+`data/links.csv` and, like manual edits, apply immediately.
+
+A link can have any number of aliases &mdash; alternate names that resolve to
+the exact same destination, e.g. `yt` for `youtube`. Aliases are shown as
+outlined chips next to a link's name, and both the add and edit pages have an
+**Aliases** section to add or remove them. They live in a second file,
+`data/aliases.csv`, one per line, with columns `link,alias`:
+
+```csv
+link,alias
+youtube,yt
+```
+
+`go/yt` then behaves exactly like `go/youtube`, including with search terms.
+
 ## Use as a Chrome search engine
 
 A keyword search engine is what makes the links usable from the address bar:
