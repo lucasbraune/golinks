@@ -1,33 +1,226 @@
-:root { color-scheme: light dark; }
+:root {
+  color-scheme: light dark;
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  max-width: 40rem;
-  margin: 3rem auto;
-  padding: 0 1rem;
-  line-height: 1.6;
+  --bg: #f6f6f3;
+  --surface: #ffffff;
+  --surface-hover: #f0f0ed;
+  --border: #e1e1dd;
+  --ink: #1b1d20;
+  --ink-dim: #6b6f76;
+  --accent: #157a44;
+  --accent-dim: rgba(21, 122, 68, 0.08);
+  --accent-dim-hover: rgba(21, 122, 68, 0.14);
+  --shadow: 0 1px 2px rgba(20, 20, 15, 0.05), 0 10px 28px rgba(20, 20, 15, 0.05);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
-
-h1 { font-weight: 600; }
-
-table { border-collapse: collapse; width: 100%; }
-
-th, td { text-align: left; padding: 0.5rem 1rem 0.5rem 0; }
-
-th {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.6;
-}
-
-tr + tr td { border-top: 1px solid rgba(128, 128, 128, 0.25); }
-
-a { color: #2563eb; text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-footer { margin-top: 2rem; font-size: 0.85rem; opacity: 0.7; }
 
 @media (prefers-color-scheme: dark) {
-  a { color: #60a5fa; }
+  :root {
+    --bg: #0a0b0d;
+    --surface: #131519;
+    --surface-hover: #191c21;
+    --border: #23262c;
+    --ink: #e7e9ec;
+    --ink-dim: #868b93;
+    --accent: #6bbd85;
+    --accent-dim: rgba(107, 189, 133, 0.12);
+    --accent-dim-hover: rgba(107, 189, 133, 0.18);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.35);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem 3rem;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  margin: 0 0 0.9rem;
+}
+
+.eyebrow .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+
+h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem;
+}
+
+.subtitle {
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+  margin: 0 0 2rem;
+}
+
+.subtitle code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  text-align: left;
+  padding: 0.85rem 1.25rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Destination reads top-down (url, then muted search_url); the name chips
+   have no such internal order, so center them against the row instead of
+   pinning to the top, where they'd sit oddly high next to a two-line dest.
+   (vertical-align only works on an actual table cell, so this stays on the
+   td; the flex layout for wrapping chips lives on the .names div inside it —
+   putting display:flex on the td itself would pull it out of table layout
+   and break row-height sharing with its sibling td.) */
+.names-cell {
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  tbody tr {
+    transition: background-color 0.15s ease;
+  }
+}
+
+.names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  background: var(--accent-dim-hover);
+}
+
+.dest {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+}
+
+.dest .arrow {
+  color: var(--accent);
+  margin-right: 0.5rem;
+  user-select: none;
+}
+
+.dest .url {
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.dest .url:hover {
+  color: var(--accent);
+}
+
+.search-url {
+  margin-top: 0.3rem;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+a:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+footer {
+  margin-top: 1.75rem;
+  font-size: 0.85rem;
+}
+
+footer a {
+  font-family: var(--font-mono);
+  color: var(--ink-dim);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--border);
+}
+
+footer a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 30rem) {
+  body {
+    padding: 2.5rem 1rem 2rem;
+  }
+
+  th,
+  td {
+    padding: 0.7rem 0.85rem;
+  }
 }

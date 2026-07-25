@@ -19,7 +19,7 @@ LINKS_FILE = File.expand_path(ENV.fetch('GOLINKS_LINKS_FILE', 'data/links.csv'),
 # Each entry is { url:, search_url: }; search_url is an optional template
 # containing "%s", used when the query is "<name> <search terms>".
 def links
-  rows = CSV.read(LINKS_FILE, headers: true).map do |row|
+  rows = CSV.read(LINKS_FILE, headers: true).reject { |row| row['name'].nil? }.map do |row|
     [row['name'], { url: row['url'], search_url: row['search_url'] }]
   end.to_h
   { 'go' => { url: "http://localhost:#{PORT}", search_url: nil } }.merge(rows)
@@ -48,6 +48,13 @@ helpers do
   def h(text)
     Rack::Utils.escape_html(text)
   end
+
+  # Shortens text for display only; callers keep the full string for hrefs etc.
+  def truncate(text, length = 80)
+    return text if text.nil? || text.length <= length
+
+    "#{text[0, length - 1]}…"
+  end
 end
 
 # The link name (and optional "<space>search terms") comes from the URL path,
@@ -65,7 +72,11 @@ get '/*' do
   if target
     redirect target, 302
   else
-    grouped = current_links.group_by { |_name, entry| entry[:url] }
+    # One row per url, names within a row sorted, rows sorted by their first name.
+    grouped = current_links
+              .group_by { |_name, entry| entry[:url] }
+              .transform_values { |pairs| pairs.sort_by { |name, _entry| name } }
+              .sort_by { |_url, pairs| pairs.first.first }
     erb :index, locals: { grouped: grouped, links_file: LINKS_FILE }
   end
 end
