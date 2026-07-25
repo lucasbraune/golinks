@@ -4,10 +4,16 @@ require 'sinatra'
 require 'csv'
 
 PORT = ENV.fetch('PORT', 51242).to_i
-set :bind, '127.0.0.1'
+# Binding all interfaces makes the port reachable from the local network (not
+# just this machine). Host authorization (below) rejects requests whose Host
+# header isn't recognized, but the port itself is open.
+set :bind, '0.0.0.0'
 set :port, PORT
 
-LINKS_FILE = File.expand_path('data/links.csv', __dir__)
+# Links live in data/links.csv by default; GOLINKS_LINKS_FILE overrides the
+# path (the tests point it at a fixture). A relative value is resolved against
+# this file's directory; an absolute one is used as-is.
+LINKS_FILE = File.expand_path(ENV.fetch('GOLINKS_LINKS_FILE', 'data/links.csv'), __dir__)
 
 # Reload on every request so edits to the CSV apply without a restart.
 # Each entry is { url:, search_url: }; search_url is an optional template
@@ -44,8 +50,16 @@ helpers do
   end
 end
 
-get '/' do
-  query = params['query']
+# The link name (and optional "<space>search terms") comes from the URL path,
+# so http://go/wiki and http://go/yt rory sutherland work from any browser or
+# from curl. path_info always begins with "/", which [1..] drops.
+get '/*' do
+  # Puma leaves PATH_INFO percent-encoded; unescape decodes it query-style, so
+  # both "%20" and "+" become spaces. "+" is how Chrome's keyword encodes spaces
+  # in its %s substitution, so this one path form serves both direct typing and
+  # the Chrome keyword — no query string needed. (A literal "+" in search terms
+  # must therefore be typed as "%2B".)
+  query = Rack::Utils.unescape(request.path_info)[1..]
   current_links = links
   target = redirect_target(query, current_links)
   if target

@@ -1,0 +1,4 @@
+name,url,search_url
+wiki,https://www.wikipedia.org,https://en.wikipedia.org/w/index.php?search=%s
+a/b,https://example.com/a/b,https://example.com/a/b?q=%s
+plain,https://example.com/plain,

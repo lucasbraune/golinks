@@ -5,19 +5,18 @@
     <key>Label</key>
     <string>com.lucasbraune.golinks</string>
 
+    <!--
+      Per-user LaunchAgent: starts the server at login, running as the
+      logged-in user (no root), with the server's defaults: port 51242 on all
+      interfaces. Restarts it if it crashes (KeepAlive).
+    -->
     <key>ProgramArguments</key>
     <array>
-        <string>__REPO_DIR__/launch-agent/golinks</string>
+        <string>__REPO_DIR__/launchd/golinks</string>
     </array>
 
     <key>WorkingDirectory</key>
     <string>__REPO_DIR__</string>
-
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PORT</key>
-        <string>51242</string>
-    </dict>
 
     <key>RunAtLoad</key>
     <true/>

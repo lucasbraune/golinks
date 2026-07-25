@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Thin launcher for the golinks redirect server (server.rb). It exists for one
+# reason: a name. The LaunchAgent (launchd/com.lucasbraune.golinks.plist.template)
+# runs THIS script as its program instead of running Ruby directly, so macOS
+# labels the background service "golinks" — the argv[0] basename — rather than
+# the generic "ruby" in System Settings > General > Login Items > Allow in the
+# Background. Running `ruby server.rb` directly shows up as "ruby", which is why
+# this wrapper is here; do not "simplify" it away.
+#
+# Ruby comes from the rbenv shim, so it follows rbenv version switches. REPO_DIR
+# is resolved from this script's own location so it works regardless of the
+# working directory or where the repo is checked out.
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+REPO_DIR=$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)
+exec "$HOME/.rbenv/shims/ruby" "$REPO_DIR/server.rb"

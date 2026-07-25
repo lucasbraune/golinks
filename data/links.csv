@@ -6,3 +6,7 @@ youtube,https://www.youtube.com,https://www.youtube.com/results?search_query=%s
 econ,https://www.economist.com,https://www.economist.com/search?q=%s
 economist,https://www.economist.com,https://www.economist.com/search?q=%s
 gh,https://github.com/,https://github.com/search?q=%s
+claude,https://www.claude.ai/,
+pokemon,https://www.youtube.com/show/VLPLRcHmntfmJ8BNpfON92grhkv6WxuqF5vD?season=3&sbp=CgEzGgAqC3ozaE1YNjVLaHRnQAFKDVBTR09UbHFndjltTlk%253D,
+"pokemon fillers",https://docs.google.com/spreadsheets/d/e/2PACX-1vRRcvt8VScb_LO-GESJaCxIscFG_sj_0NcNqp_YevIlIp8_yC3HlKMmzRxEoI-B24LDjPpTW9S3PVCY/pubhtml,
+
