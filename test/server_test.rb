@@ -32,9 +32,11 @@ describe 'golinks server' do
     last_response.headers['Location']
   end
 
-  # The /links routes write the fixture CSVs; restore them after every
-  # example so tests stay order-independent (a no-op for read-only examples).
-  after do
+  # The /links routes write the fixture CSVs; reset them to their original
+  # contents before every example so tests stay order-independent (a no-op
+  # for read-only examples) and a crashed run can't leave a later run
+  # starting from mutated fixtures.
+  before do
     File.write(LINKS_FIXTURE_PATH, ORIGINAL_LINKS_FIXTURE)
     File.write(ALIASES_FIXTURE_PATH, ORIGINAL_ALIASES_FIXTURE)
   end
