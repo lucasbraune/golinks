@@ -54,6 +54,12 @@ service](#run-as-a-background-service) below.
 
 ## Development
 
+Run the test suite:
+
+```sh
+ruby test/server_test.rb
+```
+
 Lint with [RuboCop](https://rubocop.org) (installed via the Gemfile's
 `development` group):
 

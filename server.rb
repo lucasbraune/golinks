@@ -74,7 +74,7 @@ get '/links/*name/edit' do
   halt 404, "No link named “#{h(params['name'])}”." unless link
 
   erb :link_form, locals: {
-    heading: 'Edit link', action: "/links/#{Rack::Utils.escape_path(link.name)}/edit",
+    heading: 'Edit link', action: "/links/#{link.name}/edit",
     name: link.name, url: link.url, search_url: link.search_url, aliases: link.aliases,
     error: nil, original_name: link.name
   }
@@ -90,7 +90,7 @@ post '/links/*name/edit' do
   redirect '/links'
 rescue ArgumentError, GoLinks::LinkRepository::InvalidNameError => e
   erb :link_form, locals: GoLinks::ApiHelpers.link_form_locals(
-    params, heading: 'Edit link', action: "/links/#{Rack::Utils.escape_path(old_name)}/edit",
+    params, heading: 'Edit link', action: "/links/#{old_name}/edit",
             original_name: old_name, error: e.message
   )
 end
