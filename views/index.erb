@@ -16,7 +16,7 @@
         type <code>go &lt;name&gt;</code> in Chrome, or click one below.
       </p>
     </div>
-    <a class="btn" href="/new">Add link</a>
+    <a class="btn" href="/links/new">Add link</a>
   </div>
 
   <div class="card">
@@ -39,7 +39,7 @@
             <div class="search-url"><%= h(truncate(entry[:search_url])) %></div>
             <% end %>
             <% if entry[:editable] %>
-            <a class="edit-button" href="/<%= h(entry[:name]) %>/edit" aria-label="Edit &#8220;<%= h(entry[:name]) %>&#8221;">&#9998;</a>
+            <a class="edit-button" href="/links/<%= h(entry[:name]) %>/edit" aria-label="Edit &#8220;<%= h(entry[:name]) %>&#8221;">&#9998;</a>
             <% end %>
           </td>
         </tr>

@@ -1,7 +1,7 @@
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('Gemfile', __dir__)
 require 'bundler/setup'
 require 'sinatra'
-require 'csv'
+require_relative 'lib/link_repository'
 
 PORT = ENV.fetch('PORT', 51242).to_i
 # Binding all interfaces makes the port reachable from the local network (not
@@ -16,114 +16,60 @@ set :port, PORT
 LINKS_FILE = File.expand_path(ENV.fetch('GOLINKS_LINKS_FILE', 'data/links.csv'), __dir__)
 # Aliases are a second CSV, not a column of links.csv: one row per alias
 # (link,alias), so a link can have any number of aliases without needing a
-# packed multi-value field. An alias behaves exactly like its link everywhere
-# — `links` below resolves it to the identical { url:, search_url: } entry.
+# packed multi-value field.
 ALIASES_FILE = File.expand_path(ENV.fetch('GOLINKS_ALIASES_FILE', 'data/aliases.csv'), __dir__)
 
-# "go" is the synthetic self-link (see `links` below), not a CSV row, so it
-# can't be edited or deleted. "new" is reserved so a stored name can never
-# shadow the GET/POST /new route below. A name ending in "/edit" is reserved
-# for the same reason, against GET/POST /:name/edit — Sinatra matches that
-# route before the catch-all "/*" and would win, making such a name
-# unreachable by path.
-RESERVED_NAMES = ['go', 'new'].freeze
-RESERVED_SUFFIX = '/edit'
+repository = LinkRepository.new(links_file: LINKS_FILE, aliases_file: ALIASES_FILE, port: PORT)
 
-# Raw rows from the CSV, in file order. Each is { name:, url:, search_url: }.
-# A trailing blank line in the CSV parses as an all-nil row; drop it.
-def read_links
-  CSV.read(LINKS_FILE, headers: true).reject { |row| row['name'].nil? }.map do |row|
-    { name: row['name'], url: row['url'], search_url: row['search_url'] }
+# Builds a Link from a submitted add/edit form. Raises ArgumentError with a
+# user-facing message if the submission is structurally invalid (see
+# Link.new in lib/link.rb) — callers rescue that alongside
+# LinkRepository::InvalidNameError to re-render the form with the error.
+def link_from_params(params)
+  search_url = params['search_url'].to_s.strip
+  Link.new(
+    name: params['new_name'].to_s.strip,
+    url: params['url'].to_s.strip,
+    search_url: search_url.empty? ? nil : search_url,
+    aliases: Array(params['aliases']).map(&:strip).reject(&:empty?)
+  )
+end
+
+# Locals for re-rendering the add/edit form after a failed submission. Echoes
+# back exactly what was submitted, blanks included, so the user doesn't lose
+# their place.
+def link_form_locals(params, heading:, action:, original_name:, error:)
+  {
+    heading: heading, action: action, original_name: original_name, error: error,
+    name: params['new_name'].to_s.strip, url: params['url'].to_s.strip,
+    search_url: params['search_url'].to_s.strip, aliases: Array(params['aliases'])
+  }
+end
+
+# name => Link, with every alias also pointing at its link's entry, so
+# "/yt" resolves exactly like "/youtube".
+def links_by_name(links)
+  links.each_with_object({}) do |link, memo|
+    memo[link.name] = link
+    link.aliases.each { |a| memo[a] = link }
   end
 end
 
-# Rewrites the whole links CSV. Written to a temp file and renamed into place
-# so a concurrent request never reads a half-written file. There's no locking
-# beyond that — fine for one person editing their own links, not for
-# concurrent writers.
-def write_links(rows)
-  tmp = "#{LINKS_FILE}.tmp"
-  CSV.open(tmp, 'w') do |csv|
-    csv << %w[name url search_url]
-    rows.each { |row| csv << [row[:name], row[:url], row[:search_url]] }
-  end
-  File.rename(tmp, LINKS_FILE)
-end
-
-# Raw rows from the aliases CSV. Each is { link:, alias: }. `link` names the
-# canonical link the alias points to; it isn't validated against links.csv
-# here, so a dangling alias (pointing at a link that's since been renamed or
-# deleted) is simply ignored by `links`, not an error.
-def read_aliases
-  CSV.read(ALIASES_FILE, headers: true).reject { |row| row['alias'].nil? }.map do |row|
-    { link: row['link'], alias: row['alias'] }
-  end
-end
-
-def write_aliases(rows)
-  tmp = "#{ALIASES_FILE}.tmp"
-  CSV.open(tmp, 'w') do |csv|
-    csv << %w[link alias]
-    rows.each { |row| csv << [row[:link], row[:alias]] }
-  end
-  File.rename(tmp, ALIASES_FILE)
-end
-
-# Reload on every request so edits to the CSVs — by hand, or via the
-# management routes below — apply without a restart. Each entry is
-# { url:, search_url: }; search_url is an optional template containing "%s",
-# used when the query is "<name> <search terms>". Aliases are merged in last,
-# each resolving to its link's entry, so "go/yt" behaves exactly like
-# "go/youtube".
-def links
-  canonical = read_links.map { |r| [r[:name], { url: r[:url], search_url: r[:search_url] }] }.to_h
-  aliased = read_aliases.each_with_object({}) do |a, memo|
-    entry = canonical[a[:link]]
-    memo[a[:alias]] = entry if entry
-  end
-  { 'go' => { url: "http://localhost:#{PORT}", search_url: nil } }.merge(canonical).merge(aliased)
-end
-
-# Every name currently resolvable: every canonical link's name, plus every
-# alias. A link's primary name and its aliases are both just names in this
-# same one namespace — a link can't be named what an alias already is, or
-# vice versa, since there'd be no way to tell which entry "go/<name>" means.
-def all_names(link_rows, alias_rows)
-  link_rows.map { |r| r[:name] } + alias_rows.map { |a| a[:alias] }
-end
-
-# Returns an error message, or nil if `name` is acceptable to save — as a
-# link's primary name or as one of its aliases; both go through this same
-# check. `taken` is every name this candidate must not collide with: normally
-# all_names(...), minus whatever this save is intentionally replacing (a
-# link's own old name and its own old aliases), so re-submitting a link
-# unchanged doesn't collide with itself.
-def validate_name(name, taken)
-  return 'Name is required.' if name.empty?
-  return "“#{name}” is a reserved name." if RESERVED_NAMES.include?(name)
-  return "A name can't end in “#{RESERVED_SUFFIX}”." if name.end_with?(RESERVED_SUFFIX)
-  return "“#{name}” already exists." if taken.include?(name)
-
-  nil
-end
-
-# Returns the URL to redirect to for a query, or nil to show the link list.
-# The first whitespace-separated token is the link name; the rest is the
-# optional search terms.
-def redirect_target(query, current_links)
+# Returns the URL to redirect to for a query, or nil to fall through to the
+# list. Everything up to the first space is the link name and the rest is the
+# optional search terms — unambiguous because Link::NAME_PATTERN forbids
+# spaces in names (slashes are fine; the split is on spaces only).
+def redirect_target(query, by_name)
   query = query.to_s.strip
   return nil if query.empty?
 
-  entry = current_links[query]
-  return entry[:url] if entry
+  name, terms = query.split(' ', 2)
+  link = by_name[name]
+  return nil unless link
+  return link.url if terms.nil? || terms.strip.empty?
+  return nil unless link.search_url # terms given, but this link can't search
 
-  keyword, terms = query.split(' ', 2)
-  entry = current_links[keyword]
-  if entry && entry[:search_url] && terms && !terms.strip.empty?
-    return entry[:search_url].sub('%s') { Rack::Utils.escape(terms.strip) }
-  end
-
-  nil
+  link.search_url.sub('%s') { Rack::Utils.escape(terms.strip) }
 end
 
 helpers do
@@ -139,121 +85,70 @@ helpers do
   end
 end
 
-# Management routes for links.csv/aliases.csv, at /new and /:name/edit so a
-# stored name can never collide with them (see RESERVED_NAMES/RESERVED_SUFFIX
-# above). There's no standalone list page — editing happens inline from "/"
-# via each link's edit button, and adding via the "Add link" button there.
-# Defined before the catch-all route below, since Sinatra matches routes in
-# definition order and "/*" would otherwise swallow every path here too.
-get '/new' do
+# Management routes live under /links so a stored name can never collide with
+# them (see LinkRepository::RESERVED_NAME_PATTERNS). Defined before the
+# catch-all route below, since Sinatra matches routes in definition order and
+# "/*" would otherwise swallow every path here too.
+get '/links' do
+  entries = repository.get_links.map do |l|
+    { name: l.name, url: l.url, search_url: l.search_url, aliases: l.aliases, editable: l.name != 'links' }
+  end
+  erb :index, locals: { entries: entries }
+end
+
+get '/links/new' do
   erb :link_form, locals: {
-    heading: 'Add a link', action: '/new',
-    original_name: nil, name: '', url: '', search_url: '', aliases: [], error: nil
+    heading: 'Add a link', action: '/links/new',
+    name: '', url: '', search_url: '', aliases: [], error: nil, original_name: nil
   }
 end
 
-post '/new' do
-  link_rows = read_links
-  alias_rows = read_aliases
-  name = params['name'].to_s.strip
-  url = params['url'].to_s.strip
-  search_url = params['search_url'].to_s.strip
-  raw_aliases = Array(params['aliases'])
-  alias_names = raw_aliases.map(&:strip).reject(&:empty?)
-
-  taken = all_names(link_rows, alias_rows)
-  error = validate_name(name, taken)
-  error ||= 'Destination URL is required.' if url.empty?
-  error ||= alias_names.map { |a| validate_name(a, taken) }.compact.first
-  error ||= "An alias can't be the same as the link's name." if alias_names.include?(name)
-  error ||= 'Aliases must be unique.' if alias_names.uniq.length != alias_names.length
-
-  if error
-    return erb :link_form, locals: {
-      heading: 'Add a link', action: '/new',
-      original_name: nil, name: name, url: url, search_url: search_url, aliases: raw_aliases, error: error
-    }
-  end
-
-  link_rows << { name: name, url: url, search_url: search_url.empty? ? nil : search_url }
-  write_links(link_rows)
-  alias_names.each { |a| alias_rows << { link: name, alias: a } }
-  write_aliases(alias_rows)
-  redirect '/'
+post '/links/new' do
+  repository.create_link(link_from_params(params))
+  redirect '/links'
+rescue ArgumentError, LinkRepository::InvalidNameError => e
+  erb :link_form, locals: link_form_locals(
+    params, heading: 'Add a link', action: '/links/new', original_name: nil, error: e.message
+  )
 end
 
-get '/:name/edit' do
-  link_rows = read_links
-  entry = link_rows.find { |r| r[:name] == params['name'] }
-  halt 404, "No link named “#{h(params['name'])}”." unless entry
-
-  own_aliases = read_aliases.select { |a| a[:link] == entry[:name] }.map { |a| a[:alias] }.sort
+# The per-link routes use a named splat (*name), not :name — a plain :name
+# stops at "/" and would make slash-named links (e.g. "a/b") unreachable
+# here. The splat is anchored by the trailing /edit or /delete, so there is
+# exactly one valid capture for any name, even one that itself ends in
+# "/edit" (Mustermann backtracks: "/links/a/edit/edit" -> name "a/edit").
+get '/links/*name/edit' do
+  link = repository.get_links.find { |l| l.name == params['name'] }
+  halt 404, "No link named “#{h(params['name'])}”." unless link
 
   erb :link_form, locals: {
-    heading: 'Edit link', action: "/#{Rack::Utils.escape_path(entry[:name])}/edit",
-    original_name: entry[:name], name: entry[:name], url: entry[:url],
-    search_url: entry[:search_url], aliases: own_aliases, error: nil
+    heading: 'Edit link', action: "/links/#{Rack::Utils.escape_path(link.name)}/edit",
+    name: link.name, url: link.url, search_url: link.search_url, aliases: link.aliases,
+    error: nil, original_name: link.name
   }
 end
 
-post '/:name/edit' do
-  link_rows = read_links
-  alias_rows = read_aliases
-  original_name = params['name']
-  entry = link_rows.find { |r| r[:name] == original_name }
-  halt 404, "No link named “#{h(original_name)}”." unless entry
+# The route's *name capture is the link's *old* name; `new_name` (the form
+# field) is the name going forward, which may differ from it on a rename.
+post '/links/*name/edit' do
+  old_name = params['name']
+  halt 404, "No link named “#{h(old_name)}”." unless repository.get_links.any? { |l| l.name == old_name }
 
-  new_name = params['new_name'].to_s.strip
-  url = params['url'].to_s.strip
-  search_url = params['search_url'].to_s.strip
-  raw_aliases = Array(params['aliases'])
-  alias_names = raw_aliases.map(&:strip).reject(&:empty?)
-
-  # What this save may reclaim without it counting as a collision: the link's
-  # own current name and its own current aliases.
-  own_old_names = [original_name] + alias_rows.select { |a| a[:link] == original_name }.map { |a| a[:alias] }
-  taken = all_names(link_rows, alias_rows) - own_old_names
-
-  error = validate_name(new_name, taken)
-  error ||= 'Destination URL is required.' if url.empty?
-  error ||= alias_names.map { |a| validate_name(a, taken) }.compact.first
-  error ||= "An alias can't be the same as the link's name." if alias_names.include?(new_name)
-  error ||= 'Aliases must be unique.' if alias_names.uniq.length != alias_names.length
-
-  if error
-    return erb :link_form, locals: {
-      heading: 'Edit link', action: "/#{Rack::Utils.escape_path(original_name)}/edit",
-      original_name: original_name, name: new_name, url: url, search_url: search_url,
-      aliases: raw_aliases, error: error
-    }
-  end
-
-  entry[:name] = new_name
-  entry[:url] = url
-  entry[:search_url] = search_url.empty? ? nil : search_url
-  write_links(link_rows)
-
-  # Replace this link's aliases wholesale with the submitted set, keyed under
-  # its (possibly new) name — simpler than diffing, and correctly carries
-  # aliases across a rename instead of leaving them dangling on the old name.
-  alias_rows.reject! { |a| a[:link] == original_name }
-  alias_names.each { |a| alias_rows << { link: new_name, alias: a } }
-  write_aliases(alias_rows)
-
-  redirect '/'
+  repository.create_link(link_from_params(params), replacing: old_name)
+  redirect '/links'
+rescue ArgumentError, LinkRepository::InvalidNameError => e
+  erb :link_form, locals: link_form_locals(
+    params, heading: 'Edit link', action: "/links/#{Rack::Utils.escape_path(old_name)}/edit",
+    original_name: old_name, error: e.message
+  )
 end
 
-delete '/:name' do
-  link_rows = read_links
+post '/links/*name/delete' do
   name = params['name']
-  halt 404, "No link named “#{h(name)}”." unless link_rows.reject! { |r| r[:name] == name }
+  halt 404, "No link named “#{h(name)}”." unless repository.get_links.any? { |l| l.name == name }
 
-  write_links(link_rows)
-  alias_rows = read_aliases
-  alias_rows.reject! { |a| a[:link] == name }
-  write_aliases(alias_rows)
-
-  redirect '/'
+  repository.delete_link(name: name)
+  redirect '/links'
 end
 
 # The link name (and optional "<space>search terms") comes from the URL path,
@@ -266,19 +161,10 @@ get '/*' do
   # the Chrome keyword — no query string needed. (A literal "+" in search terms
   # must therefore be typed as "%2B".)
   query = Rack::Utils.unescape(request.path_info)[1..]
-  current_links = links
-  target = redirect_target(query, current_links)
+  target = redirect_target(query, links_by_name(repository.get_links))
   if target
     redirect target, 302
   else
-    # One row per canonical link, plus its aliases (each row of aliases.csv is
-    # one alias — a link can have any number). "go" is synthetic, not a CSV
-    # row, so it's not editable and has no aliases of its own.
-    aliases_by_link = read_aliases.group_by { |a| a[:link] }
-    entries = [{ name: 'go', url: "http://localhost:#{PORT}", search_url: nil, editable: false }] +
-              read_links.map { |r| r.merge(editable: true) }
-    entries.each { |e| e[:aliases] = (aliases_by_link[e[:name]] || []).map { |a| a[:alias] }.sort }
-    entries.sort_by! { |e| e[:name] }
-    erb :index, locals: { entries: entries }
+    redirect '/links'
   end
 end

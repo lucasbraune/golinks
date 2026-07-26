@@ -16,13 +16,8 @@
     <% end %>
     <form method="post" action="<%= h(action) %>">
       <label>
-        Name
-        <% if original_name %>
-          <input type="hidden" name="name" value="<%= h(original_name) %>">
-          <input type="text" name="new_name" value="<%= h(name) %>" required autofocus>
-        <% else %>
-          <input type="text" name="name" value="<%= h(name) %>" placeholder="wiki" required autofocus>
-        <% end %>
+        Name <span class="hint">letters, numbers, and . _ - / &mdash; no spaces</span>
+        <input type="text" name="new_name" value="<%= h(name) %>" placeholder="wiki" required autofocus>
       </label>
 
       <label>
@@ -50,14 +45,13 @@
 
       <div class="form-actions">
         <button type="submit">Save</button>
-        <a class="cancel" href="/">Cancel</a>
+        <a class="cancel" href="/links">Cancel</a>
       </div>
     </form>
 
     <% if original_name %>
-    <form method="post" action="/<%= h(original_name) %>" class="delete-form"
+    <form method="post" action="/links/<%= h(original_name) %>/delete" class="delete-form"
           onsubmit="return confirm('Delete this link?')">
-      <input type="hidden" name="_method" value="delete">
       <button type="submit" class="link-button danger">Delete this link</button>
     </form>
     <% end %>

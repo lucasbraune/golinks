@@ -1,10 +1,10 @@
 name,url,search_url
-wiki,https://www.wikipedia.org,https://en.wikipedia.org/w/index.php?search=%s
-google,https://www.google.com,https://www.google.com/search?q=%s
-youtube,https://www.youtube.com,https://www.youtube.com/results?search_query=%s
+claude,https://www.claude.ai/,
 economist,https://www.economist.com,https://www.economist.com/search?q=%s
 gh,https://github.com/,https://github.com/search?q=%s
-claude,https://www.claude.ai/,
+google,https://www.google.com,https://www.google.com/search?q=%s
+links,http://localhost:51242/links,
 pokemon,https://www.youtube.com/show/VLPLRcHmntfmJ8BNpfON92grhkv6WxuqF5vD?season=4&sbp=CgE0GgAqC3ozaE1YNjVLaHRnQAFKDVBTWmRkYzdVUFNTeG8%253D,
-pokemon fillers,https://docs.google.com/spreadsheets/d/e/2PACX-1vRRcvt8VScb_LO-GESJaCxIscFG_sj_0NcNqp_YevIlIp8_yC3HlKMmzRxEoI-B24LDjPpTW9S3PVCY/pubhtml,
-foo,www.foo.com/bar,
+pokemon-fillers,https://docs.google.com/spreadsheets/d/e/2PACX-1vRRcvt8VScb_LO-GESJaCxIscFG_sj_0NcNqp_YevIlIp8_yC3HlKMmzRxEoI-B24LDjPpTW9S3PVCY/pubhtml,
+wiki,https://www.wikipedia.org,https://en.wikipedia.org/w/index.php?search=%s
+youtube,https://www.youtube.com,https://www.youtube.com/results?search_query=%s

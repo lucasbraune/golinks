@@ -12,6 +12,7 @@ ORIGINAL_LINKS_FIXTURE = File.read(LINKS_FIXTURE_PATH)
 ORIGINAL_ALIASES_FIXTURE = File.read(ALIASES_FIXTURE_PATH)
 
 require_relative '../server'
+require 'csv'
 require 'minitest/autorun'
 require 'rack/test'
 
@@ -42,18 +43,24 @@ describe 'golinks server' do
   end
 
   describe 'the link list' do
-    it 'is shown at the root path' do
-      get '/'
+    it 'is shown at /links' do
+      get '/links'
       assert last_response.ok?
       assert_includes last_response.body, 'wiki'
       refute last_response.redirect?
       assert_nil location
     end
 
-    it 'is shown for an unknown name' do
+    it 'redirects the root path to /links' do
+      get '/'
+      assert_equal 302, last_response.status
+      assert_equal 'http://127.0.0.1/links', location
+    end
+
+    it 'redirects an unknown name to /links' do
       get '/definitely-not-a-real-link'
-      assert last_response.ok?
-      assert_nil location
+      assert_equal 302, last_response.status
+      assert_equal 'http://127.0.0.1/links', location
     end
   end
 
@@ -98,11 +105,10 @@ describe 'golinks server' do
       assert_equal 'https://example.com/a/b?q=c+and+d%2Fe', location
     end
 
-    it 'falls through to the list when the name has no search url' do
+    it 'falls through to /links when the name has no search url' do
       get '/plain%20whatever'
-      assert last_response.ok?
-      refute last_response.redirect?
-      assert_nil location
+      assert_equal 302, last_response.status
+      assert_equal 'http://127.0.0.1/links', location
     end
   end
 
@@ -119,7 +125,7 @@ describe 'golinks server' do
     end
 
     it 'lists an alias next to its link on the main page' do
-      get '/'
+      get '/links'
       assert_includes last_response.body, 'chip-alias'
       assert_includes last_response.body, '>w<'
     end
@@ -127,11 +133,11 @@ describe 'golinks server' do
 
   describe 'managing links' do
     it 'creates a link and makes it live immediately' do
-      post '/new', name: 'ddg', url: 'https://duckduckgo.com', search_url: 'https://duckduckgo.com/?q=%s'
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', search_url: 'https://duckduckgo.com/?q=%s'
       assert_equal 302, last_response.status
-      assert_equal 'http://127.0.0.1/', location
+      assert_equal 'http://127.0.0.1/links', location
 
-      get '/'
+      get '/links'
       assert_includes last_response.body, 'ddg'
 
       get '/ddg'
@@ -143,7 +149,7 @@ describe 'golinks server' do
     end
 
     it 'creates a link with aliases' do
-      post '/new', name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', 'duck']
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', 'duck']
       get '/dd'
       assert_equal 302, last_response.status
       assert_equal 'https://duckduckgo.com', location
@@ -152,96 +158,113 @@ describe 'golinks server' do
     end
 
     it 'ignores blank alias fields' do
-      post '/new', name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', '', '  ']
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', '', '  ']
       rows = CSV.read(ALIASES_FIXTURE_PATH, headers: true)
       assert_equal ['dd'], rows.select { |r| r['link'] == 'ddg' }.map { |r| r['alias'] }
     end
 
     it 'treats a blank search_url as absent' do
-      post '/new', name: 'ddg', url: 'https://duckduckgo.com', search_url: ''
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', search_url: ''
       row = CSV.read(LINKS_FIXTURE_PATH, headers: true).find { |r| r['name'] == 'ddg' }
       assert_nil row['search_url']
     end
 
     it 'rejects a blank name' do
-      post '/new', name: '', url: 'https://duckduckgo.com'
+      post '/links/new', new_name: '', url: 'https://duckduckgo.com'
       assert last_response.ok? # re-renders the form, not a redirect
       assert_includes last_response.body, 'required'
 
-      get '/'
+      get '/links'
       refute_includes last_response.body, 'duckduckgo'
     end
 
     it 'rejects a blank url' do
-      post '/new', name: 'ddg', url: ''
+      post '/links/new', new_name: 'ddg', url: ''
       assert_includes last_response.body, 'required'
     end
 
     it 'rejects a duplicate name' do
-      post '/new', name: 'wiki', url: 'https://example.com'
+      post '/links/new', new_name: 'wiki', url: 'https://example.com'
       assert_includes last_response.body, 'already exists'
     end
 
     it 'rejects a name that collides with an existing alias' do
-      post '/new', name: 'w', url: 'https://example.com'
+      post '/links/new', new_name: 'w', url: 'https://example.com'
       assert_includes last_response.body, 'already exists'
     end
 
     it 'rejects an alias that collides with an existing name' do
-      post '/new', name: 'ddg', url: 'https://duckduckgo.com', aliases: ['wiki']
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['wiki']
       assert_includes last_response.body, 'already exists'
     end
 
     it "rejects an alias equal to the link's own name" do
-      post '/new', name: 'ddg', url: 'https://duckduckgo.com', aliases: ['ddg']
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['ddg']
       assert_includes last_response.body, 'be the same'
     end
 
     it 'rejects duplicate aliases within the same submission' do
-      post '/new', name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', 'dd']
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', 'dd']
       assert_includes last_response.body, 'unique'
     end
 
-    it 'rejects the reserved name "go"' do
-      post '/new', name: 'go', url: 'https://example.com'
+    it 'rejects the reserved name "links"' do
+      post '/links/new', new_name: 'links', url: 'https://example.com'
       assert_includes last_response.body, 'reserved'
     end
 
     it 'rejects the reserved name "new"' do
-      post '/new', name: 'new', url: 'https://example.com'
+      post '/links/new', new_name: 'new', url: 'https://example.com'
       assert_includes last_response.body, 'reserved'
     end
 
-    it 'rejects a name ending in "/edit"' do
-      post '/new', name: 'foo/edit', url: 'https://example.com'
-      assert_includes last_response.body, 'end in “/edit”'
+    it 'rejects a name starting with "links/"' do
+      post '/links/new', new_name: 'links/foo', url: 'https://example.com'
+      assert_includes last_response.body, 'reserved'
+    end
+
+    it 'rejects a name containing a space' do
+      post '/links/new', new_name: 'bad name', url: 'https://example.com'
+      assert_includes last_response.body, 'valid name'
+    end
+
+    it 'rejects an alias containing a space' do
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['duck duck']
+      assert_includes last_response.body, 'valid name'
+    end
+
+    it 'accepts a name with slashes, dots, dashes, and underscores' do
+      post '/links/new', new_name: 'team/my_go-link.v2', url: 'https://example.com'
+      assert_equal 302, last_response.status
+      get '/team/my_go-link.v2'
+      assert_equal 'https://example.com', location
     end
 
     it 'edits a link, changing its destination' do
-      post '/wiki/edit', new_name: 'wiki', url: 'https://simple.wikipedia.org'
+      post '/links/wiki/edit', new_name: 'wiki', url: 'https://simple.wikipedia.org'
       assert_equal 302, last_response.status
-      assert_equal 'http://127.0.0.1/', location
+      assert_equal 'http://127.0.0.1/links', location
 
       get '/wiki'
       assert_equal 'https://simple.wikipedia.org', location
     end
 
     it 'adds and removes aliases on an existing link' do
-      post '/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: ['w', 'encyclopedia']
+      post '/links/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: ['w', 'encyclopedia']
       get '/encyclopedia'
       assert_equal 302, last_response.status
 
-      post '/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: ['w']
+      post '/links/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: ['w']
       get '/encyclopedia'
-      refute_equal 302, last_response.status
+      assert_equal 'http://127.0.0.1/links', location # no longer a known name; falls through
       get '/w'
       assert_equal 302, last_response.status
     end
 
     it 'renames a link; the old name stops working, the new one works, and its alias follows' do
-      post '/wiki/edit', new_name: 'wp', url: 'https://www.wikipedia.org', aliases: ['w']
+      post '/links/wiki/edit', new_name: 'wp', url: 'https://www.wikipedia.org', aliases: ['w']
       get '/wiki'
-      refute_equal 302, last_response.status
+      assert_equal 'http://127.0.0.1/links', location # old name no longer resolves; falls through
       get '/wp'
       assert_equal 302, last_response.status
       assert_equal 'https://www.wikipedia.org', location
@@ -251,38 +274,67 @@ describe 'golinks server' do
     end
 
     it 'rejects renaming a link onto an existing name' do
-      post '/wiki/edit', new_name: 'a/b', url: 'https://www.wikipedia.org'
+      post '/links/wiki/edit', new_name: 'a/b', url: 'https://www.wikipedia.org'
       assert_includes last_response.body, 'already exists'
     end
 
     it 'lets a link keep its own existing alias when re-saved unchanged' do
-      post '/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: ['w']
+      post '/links/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: ['w']
       refute_includes last_response.body, 'already exists'
       assert_equal 302, last_response.status
     end
 
     it '404s editing a name that does not exist' do
-      get '/does-not-exist/edit'
+      get '/links/does-not-exist/edit'
+      assert_equal 404, last_response.status
+    end
+
+    it '404s posting an edit for a name that does not exist' do
+      post '/links/does-not-exist/edit', new_name: 'does-not-exist', url: 'https://example.com'
       assert_equal 404, last_response.status
     end
 
     it 'deletes a link and its aliases' do
-      delete '/wiki'
+      post '/links/wiki/delete'
       assert_equal 302, last_response.status
-      assert_equal 'http://127.0.0.1/', location
+      assert_equal 'http://127.0.0.1/links', location
 
       get '/wiki'
-      refute_equal 302, last_response.status # falls through to the list, not found
+      assert_equal 'http://127.0.0.1/links', location # falls through to /links, not found
       get '/w'
-      refute_equal 302, last_response.status # its alias stops working too
+      assert_equal 'http://127.0.0.1/links', location # its alias stops working too
 
-      get '/'
+      get '/links'
       refute_includes last_response.body, '>wiki<'
     end
 
     it '404s deleting a name that does not exist' do
-      delete '/does-not-exist'
+      post '/links/does-not-exist/delete'
       assert_equal 404, last_response.status
+    end
+
+    # The per-link management routes use a splat (*name), not :name, so
+    # slash-named links are editable too — :name would stop at the "/".
+    describe 'a slash-named link' do
+      it 'shows its edit form' do
+        get '/links/a/b/edit'
+        assert last_response.ok?
+        assert_includes last_response.body, 'a/b'
+      end
+
+      it 'can be edited' do
+        post '/links/a/b/edit', new_name: 'a/b', url: 'https://example.com/changed'
+        assert_equal 302, last_response.status
+        get '/a/b'
+        assert_equal 'https://example.com/changed', location
+      end
+
+      it 'can be deleted' do
+        post '/links/a/b/delete'
+        assert_equal 302, last_response.status
+        get '/a/b'
+        assert_equal 'http://127.0.0.1/links', location # gone; falls through
+      end
     end
   end
 end

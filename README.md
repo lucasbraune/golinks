@@ -58,12 +58,15 @@ service](#run-as-a-background-service) below.
 |---|---|
 | `GET /<name>` | `302` redirect to that link's URL |
 | `GET /<name> <terms>` | `302` redirect to the link's search URL with `<terms>` filled in, if the link defines one |
-| `GET /` (or an unrecognized path) | `200` HTML page listing all links |
+| `GET /links` | `200` HTML page listing all links |
+| `GET /` (or an unrecognized path) | `302` redirect to `/links` |
 
 The link name comes from the URL **path**, so it works in any browser or with
-`curl` — not just Chrome. Everything up to the first space is the name (so a
-name may itself contain slashes, e.g. `a/b`); the rest is the search terms. For
-example `GET /a/b c and d/e` looks up the link named `a/b` with search terms
+`curl` — not just Chrome. Everything up to the first space is the name; the
+rest is the search terms. That split is unambiguous because names can't
+contain spaces: a name (or alias) is made of letters, digits, `.`, `_`, and
+`-`, optionally in several `/`-separated segments (e.g. `a/b`). So
+`GET /a/b c and d/e` looks up the link named `a/b` with search terms
 `c and d/e`.
 
 Links are defined in `data/links.csv`, one per line, with columns `name,url,search_url`.
@@ -79,13 +82,13 @@ yt,https://www.youtube.com,https://www.youtube.com/results?search_query=%s
 `https://www.youtube.com/results?search_query=rory+sutherland`.
 
 The file is reloaded on every request, so edits apply without restarting the
-server. A built-in `go` entry points back to this server, so `go go` shows the
-link list.
+server. A canonical `links` entry points back at this server's own list page,
+so `go links` shows the link list (it is re-inserted automatically if deleted).
 
 ### Adding, editing, and aliasing links
 
 Links can be managed by editing `data/links.csv` directly, or from the browser
-at `go/go`: **Add link** at the top adds a new one, and hovering a row reveals
+at `go/links`: **Add link** at the top adds a new one, and hovering a row reveals
 an edit button (&#9998;) at the right of its destination that opens an edit
 page (which also has a **Delete this link** action). Edits write straight to
 `data/links.csv` and, like manual edits, apply immediately.
