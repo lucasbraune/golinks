@@ -52,6 +52,18 @@ Stop it with `Ctrl-C`.
 To run it automatically at login instead, see [Run as a background
 service](#run-as-a-background-service) below.
 
+## Development
+
+Lint with [RuboCop](https://rubocop.org) (installed via the Gemfile's
+`development` group):
+
+```sh
+bundle exec rubocop
+```
+
+`.rubocop.yml` documents where and why this repo's config departs from
+RuboCop's defaults.
+
 ## Endpoints
 
 | Request | Response |

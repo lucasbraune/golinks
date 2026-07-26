@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # End-to-end tests for the golinks server: every example drives a real HTTP
 # request through the routes. Run from the repo root with:
 #   ruby test/server_test.rb
@@ -6,8 +8,8 @@
 # server.rb is required, since it reads them when the app loads.
 ENV['GOLINKS_LINKS_FILE'] = File.expand_path('fixtures/links.csv', __dir__)
 ENV['GOLINKS_ALIASES_FILE'] = File.expand_path('fixtures/aliases.csv', __dir__)
-LINKS_FIXTURE_PATH = ENV['GOLINKS_LINKS_FILE']
-ALIASES_FIXTURE_PATH = ENV['GOLINKS_ALIASES_FILE']
+LINKS_FIXTURE_PATH = ENV.fetch('GOLINKS_LINKS_FILE', nil)
+ALIASES_FIXTURE_PATH = ENV.fetch('GOLINKS_ALIASES_FILE', nil)
 ORIGINAL_LINKS_FIXTURE = File.read(LINKS_FIXTURE_PATH)
 ORIGINAL_ALIASES_FIXTURE = File.read(ALIASES_FIXTURE_PATH)
 
@@ -45,9 +47,9 @@ describe 'golinks server' do
   describe 'the link list' do
     it 'is shown at /links' do
       get '/links'
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
       assert_includes last_response.body, 'wiki'
-      refute last_response.redirect?
+      refute_predicate last_response, :redirect?
       assert_nil location
     end
 
@@ -67,7 +69,7 @@ describe 'golinks server' do
   describe 'direct name lookup' do
     it 'redirects a known name to its url' do
       get '/wiki'
-      assert last_response.redirect?
+      assert_predicate last_response, :redirect?
       assert_equal 302, last_response.status
       assert_equal 'https://www.wikipedia.org', location
     end
@@ -149,7 +151,7 @@ describe 'golinks server' do
     end
 
     it 'creates a link with aliases' do
-      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', 'duck']
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: %w[dd duck]
       get '/dd'
       assert_equal 302, last_response.status
       assert_equal 'https://duckduckgo.com', location
@@ -160,7 +162,7 @@ describe 'golinks server' do
     it 'ignores blank alias fields' do
       post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', '', '  ']
       rows = CSV.read(ALIASES_FIXTURE_PATH, headers: true)
-      assert_equal ['dd'], rows.select { |r| r['link'] == 'ddg' }.map { |r| r['alias'] }
+      assert_equal(['dd'], rows.select { |r| r['link'] == 'ddg' }.map { |r| r['alias'] })
     end
 
     it 'treats a blank search_url as absent' do
@@ -171,7 +173,7 @@ describe 'golinks server' do
 
     it 'rejects a blank name' do
       post '/links/new', new_name: '', url: 'https://duckduckgo.com'
-      assert last_response.ok? # re-renders the form, not a redirect
+      assert_predicate last_response, :ok? # re-renders the form, not a redirect
       assert_includes last_response.body, 'required'
 
       get '/links'
@@ -204,7 +206,7 @@ describe 'golinks server' do
     end
 
     it 'rejects duplicate aliases within the same submission' do
-      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: ['dd', 'dd']
+      post '/links/new', new_name: 'ddg', url: 'https://duckduckgo.com', aliases: %w[dd dd]
       assert_includes last_response.body, 'unique'
     end
 
@@ -250,7 +252,7 @@ describe 'golinks server' do
     end
 
     it 'adds and removes aliases on an existing link' do
-      post '/links/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: ['w', 'encyclopedia']
+      post '/links/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: %w[w encyclopedia]
       get '/encyclopedia'
       assert_equal 302, last_response.status
 
@@ -318,7 +320,7 @@ describe 'golinks server' do
     describe 'a slash-named link' do
       it 'shows its edit form' do
         get '/links/a/b/edit'
-        assert last_response.ok?
+        assert_predicate last_response, :ok?
         assert_includes last_response.body, 'a/b'
       end
 

@@ -1,0 +1,53 @@
+plugins:
+  - rubocop-minitest
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.4
+  Exclude:
+    - 'vendor/**/*'
+
+# Route blocks (server.rb) and describe/it blocks (test/) are long by nature;
+# splitting them up would hurt readability more than it helps.
+Metrics/BlockLength:
+  Exclude:
+    - 'server.rb'
+    - 'test/**/*'
+
+# The existing code is a little denser than the defaults assume (e.g. Link#initialize
+# validates several independent things in one method); nudge the ceilings up rather
+# than force a split that wouldn't actually improve readability.
+Metrics/AbcSize:
+  Max: 26
+Metrics/MethodLength:
+  Max: 15
+Metrics/CyclomaticComplexity:
+  Max: 12
+Metrics/PerceivedComplexity:
+  Max: 12
+
+# This repo's comments explain the "why", not "what" every class/method does;
+# a mandatory class doc comment would just be noise.
+Style/Documentation:
+  Enabled: false
+
+# The 115-char comment lines already in the repo are intentional (parenthetical
+# asides), not something to wrap; give a little headroom instead of the default 120.
+Layout/LineLength:
+  Max: 130
+
+# get_links is an established, widely-referenced name across this repo; not worth
+# a disruptive rename to satisfy a "no get_ prefix" nitpick.
+Naming/AccessorMethodName:
+  Enabled: false
+
+# Flags PORT = ENV.fetch('PORT', 51242) for lacking a 51_242-style separator;
+# not useful for a port number or other small identifiers.
+Style/NumericLiterals:
+  Enabled: false
+
+# This suite deliberately keeps arrange/act/assert tight with no blank lines
+# throughout (see test/server_test.rb) - that's the established style here, not
+# an oversight.
+Minitest/EmptyLineBeforeAssertionMethods:
+  Enabled: false
