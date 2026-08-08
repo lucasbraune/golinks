@@ -6,12 +6,37 @@
 # GOLINKS_LINKS_FILE/GOLINKS_ALIASES_FILE point the server at fixed fixtures so
 # the assertions don't depend on the live data/*.csv. Must be set before
 # server.rb is required, since it reads them when the app loads.
-ENV['GOLINKS_LINKS_FILE'] = File.expand_path('fixtures/links.csv', __dir__)
-ENV['GOLINKS_ALIASES_FILE'] = File.expand_path('fixtures/aliases.csv', __dir__)
-LINKS_FIXTURE_PATH = ENV.fetch('GOLINKS_LINKS_FILE', nil)
-ALIASES_FIXTURE_PATH = ENV.fetch('GOLINKS_ALIASES_FILE', nil)
-ORIGINAL_LINKS_FIXTURE = File.read(LINKS_FIXTURE_PATH)
-ORIGINAL_ALIASES_FIXTURE = File.read(ALIASES_FIXTURE_PATH)
+require 'fileutils'
+require 'tmpdir'
+
+# The /links routes write to whatever those env vars point at, so point them at
+# throwaway copies in a tmpdir rather than at test/fixtures/*.csv directly. The
+# checked-in fixtures are then only ever read, which matters because a run that
+# dies mid-example used to leave them mutated — and since the pristine contents
+# were captured once at load, every later run "reset" to the mutated copy and
+# failed in ways that looked nothing like the actual cause.
+FIXTURE_SOURCE = File.expand_path('fixtures', __dir__)
+FIXTURE_DIR = Dir.mktmpdir('golinks-test-')
+# Registered before minitest/autorun's own at_exit, and at_exit runs last-in
+# first-out, so the suite finishes before this removes the directory.
+at_exit { FileUtils.remove_entry(FIXTURE_DIR, true) }
+
+LINKS_FIXTURE_PATH = File.join(FIXTURE_DIR, 'links.csv')
+ALIASES_FIXTURE_PATH = File.join(FIXTURE_DIR, 'aliases.csv')
+ENV['GOLINKS_LINKS_FILE'] = LINKS_FIXTURE_PATH
+ENV['GOLINKS_ALIASES_FILE'] = ALIASES_FIXTURE_PATH
+
+# Read-and-write rather than FileUtils.cp: cp carries the source's permission
+# bits across, so a read-only checked-in fixture would produce a read-only copy
+# that neither the next reset nor the server could write.
+def reset_fixtures!
+  File.write(LINKS_FIXTURE_PATH, File.read(File.join(FIXTURE_SOURCE, 'links.csv')))
+  File.write(ALIASES_FIXTURE_PATH, File.read(File.join(FIXTURE_SOURCE, 'aliases.csv')))
+end
+
+# Seed once up front so the files exist before anything can read them, not just
+# before the first example.
+reset_fixtures!
 
 require_relative '../server'
 require 'csv'
@@ -35,13 +60,10 @@ describe 'golinks server' do
     last_response.headers['Location']
   end
 
-  # The /links routes write the fixture CSVs; reset them to their original
-  # contents before every example so tests stay order-independent (a no-op
-  # for read-only examples) and a crashed run can't leave a later run
-  # starting from mutated fixtures.
+  # Re-copy before every example so tests stay order-independent (a no-op for
+  # read-only examples) — the writes land in the tmpdir, never in the repo.
   before do
-    File.write(LINKS_FIXTURE_PATH, ORIGINAL_LINKS_FIXTURE)
-    File.write(ALIASES_FIXTURE_PATH, ORIGINAL_ALIASES_FIXTURE)
+    reset_fixtures!
   end
 
   describe 'the link list' do
@@ -59,10 +81,22 @@ describe 'golinks server' do
       assert_equal 'http://127.0.0.1/links', location
     end
 
-    it 'redirects an unknown name to /links' do
+    it 'redirects an unknown name to the list, with the query as a filter' do
       get '/definitely-not-a-real-link'
       assert_equal 302, last_response.status
-      assert_equal 'http://127.0.0.1/links', location
+      assert_equal 'http://127.0.0.1/links?q=definitely-not-a-real-link', location
+    end
+
+    it 'escapes a query with spaces and separators into ?q=' do
+      get '/no%20such%20link%20&%20more'
+      assert_equal 302, last_response.status
+      assert_equal 'http://127.0.0.1/links?q=no+such+link+%26+more', location
+    end
+
+    it 'pre-fills the filter box from ?q=' do
+      get '/links?q=dis'
+      assert_predicate last_response, :ok?
+      assert_match(/<input type="search" id="search" value="dis"/, last_response.body)
     end
 
     it 'embeds the entries as JSON for the client-side search filter' do
@@ -125,10 +159,12 @@ describe 'golinks server' do
       assert_equal 'https://example.com/a/b?q=c+and+d%2Fe', location
     end
 
-    it 'falls through to /links when the name has no search url' do
+    it 'ignores unusable search terms and goes to the link itself' do
+      # The name resolved; only the terms are unusable. Honour the name rather
+      # than dropping "plain whatever" into a filter that would match nothing.
       get '/plain%20whatever'
       assert_equal 302, last_response.status
-      assert_equal 'http://127.0.0.1/links', location
+      assert_equal 'https://example.com/plain', location
     end
   end
 
@@ -276,7 +312,7 @@ describe 'golinks server' do
 
       post '/links/wiki/edit', new_name: 'wiki', url: 'https://www.wikipedia.org', aliases: ['w']
       get '/encyclopedia'
-      assert_equal 'http://127.0.0.1/links', location # no longer a known name; falls through
+      assert_equal 'http://127.0.0.1/links?q=encyclopedia', location # no longer a known name
       get '/w'
       assert_equal 302, last_response.status
     end
@@ -284,7 +320,7 @@ describe 'golinks server' do
     it 'renames a link; the old name stops working, the new one works, and its alias follows' do
       post '/links/wiki/edit', new_name: 'wp', url: 'https://www.wikipedia.org', aliases: ['w']
       get '/wiki'
-      assert_equal 'http://127.0.0.1/links', location # old name no longer resolves; falls through
+      assert_equal 'http://127.0.0.1/links?q=wiki', location # old name no longer resolves
       get '/wp'
       assert_equal 302, last_response.status
       assert_equal 'https://www.wikipedia.org', location
@@ -320,9 +356,9 @@ describe 'golinks server' do
       assert_equal 'http://127.0.0.1/links', location
 
       get '/wiki'
-      assert_equal 'http://127.0.0.1/links', location # falls through to /links, not found
+      assert_equal 'http://127.0.0.1/links?q=wiki', location # not found; query becomes a filter
       get '/w'
-      assert_equal 'http://127.0.0.1/links', location # its alias stops working too
+      assert_equal 'http://127.0.0.1/links?q=w', location # its alias stops working too
 
       get '/links'
       refute_includes last_response.body, '>wiki<'
@@ -353,7 +389,7 @@ describe 'golinks server' do
         post '/links/a/b/delete'
         assert_equal 302, last_response.status
         get '/a/b'
-        assert_equal 'http://127.0.0.1/links', location # gone; falls through
+        assert_equal 'http://127.0.0.1/links?q=a%2Fb', location # gone; query becomes a filter
       end
     end
   end

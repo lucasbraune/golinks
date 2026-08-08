@@ -1,17 +1,18 @@
 name,url,search_url,description
-cinema,https://cinema-muenchen.com/showtimes/?time=week,,
-claude,https://www.claude.ai/,,Claude chatbot
-disney,https://www.disneyplus.com/,,
-economist,https://www.economist.com,https://www.economist.com/search?q=%s,
-gh,https://github.com/,https://github.com/search?q=%s,
-google,https://www.google.com,https://www.google.com/search?q=%s,
+boss,https://www.bosscoins.com/en/index.php,,Boss Coins: custom challenge coins and medals
+cinema,https://cinema-muenchen.com/showtimes/?time=week,,Cinema Filmtheater München
+claude,https://www.claude.ai/,,Claude: AI assistant by Anthropic
+disney,https://www.disneyplus.com/,,Disney+ streaming service
+economist,https://www.economist.com,https://www.economist.com/search?q=%s,The Economist - news and analysis
+gh,https://github.com/,https://github.com/search?q=%s,GitHub: developer platform
+google,https://www.google.com,https://www.google.com/search?q=%s,Google search
 links,http://localhost:51242/links,,
-netflix,https://www.netflix.com/browse,,
-pokemon,https://www.youtube.com/show/VLPLRcHmntfmJ8BNpfON92grhkv6WxuqF5vD?season=4&sbp=CgE0GgAqC3ozaE1YNjVLaHRnQAFKDVBTWmRkYzdVUFNTeG8%253D,,
-pokemon-fillers,https://docs.google.com/spreadsheets/d/e/2PACX-1vRRcvt8VScb_LO-GESJaCxIscFG_sj_0NcNqp_YevIlIp8_yC3HlKMmzRxEoI-B24LDjPpTW9S3PVCY/pubhtml,,
-sap-garden,https://tickets.sapgarden.com/shop?hiqp=$_hqpU0Fkck5iME8zYUtvZWttZXFtOUJzM2NpUDZpdEhRMjE4QjJCTzkvRWtGZ0pEdGx3N2o2NFExN0xLSzNTczVsNys4M1NxNGpBRlA3TCtSQnlnUTV2SmFJdXFwNm13N1h2TkdGR1Axd05hVm1LYkQ2VnJEV3FvTmRFbUY2NUtTalpjTDRhMXNMbVlSQTJSdzVHMnloWQ==,,
-wiki,https://www.wikipedia.org,https://en.wikipedia.org/w/index.php?search=%s,
-xmen,https://www.disneyplus.com/browse/entity-8dc91ed4-cdca-4fab-9723-d3d42f382d34,,
-ynab,https://app.ynab.com/,,
-youtube,https://www.youtube.com,https://www.youtube.com/results?search_query=%s,
-zinia,https://customer.openbankpay.com/overview,,
+netflix,https://www.netflix.com/browse,,Netflix streaming movies and TV shows
+pokemon,https://www.youtube.com/show/VLPLRcHmntfmJ8BNpfON92grhkv6WxuqF5vD?season=4&sbp=CgE0GgAqC3ozaE1YNjVLaHRnQAFKDVBTWmRkYzdVUFNTeG8%253D,,Pokémon anime
+pokemon-fillers,https://docs.google.com/spreadsheets/d/e/2PACX-1vRRcvt8VScb_LO-GESJaCxIscFG_sj_0NcNqp_YevIlIp8_yC3HlKMmzRxEoI-B24LDjPpTW9S3PVCY/pubhtml,,Pokémon anime filler episode list
+sap-garden,https://tickets.sapgarden.com/shop?hiqp=$_hqpU0Fkck5iME8zYUtvZWttZXFtOUJzM2NpUDZpdEhRMjE4QjJCTzkvRWtGZ0pEdGx3N2o2NFExN0xLSzNTczVsNys4M1NxNGpBRlA3TCtSQnlnUTV2SmFJdXFwNm13N1h2TkdGR1Axd05hVm1LYkQ2VnJEV3FvTmRFbUY2NUtTalpjTDRhMXNMbVlSQTJSdzVHMnloWQ==,,SAP Garden tickets
+wiki,https://www.wikipedia.org,https://en.wikipedia.org/w/index.php?search=%s,"Wikipedia, free online encyclopedia"
+xmen,https://www.disneyplus.com/browse/entity-8dc91ed4-cdca-4fab-9723-d3d42f382d34,,X-Men '97 on Disney+
+ynab,https://app.ynab.com/,,YNAB budgeting and personal finance app
+youtube,https://www.youtube.com,https://www.youtube.com/results?search_query=%s,YouTube - video sharing and streaming platform
+zinia,https://customer.openbankpay.com/overview,,"Openbank Pay (formerly Zinia) - Apple, iPhone BNPL"

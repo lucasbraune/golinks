@@ -19,7 +19,8 @@ module GoLinks
     MAX_TOKENS = 200
     SYSTEM_PROMPT = "Generate a short phrase (up to 7 words) to describe the user's URL. Include the name of " \
                     'the business. Add more information if the name is not self-explanatory. In particular, ' \
-                    'include a description of user content if the URL points to user content.'
+                    'include a description of user content if the URL points to user content. ' \
+                    'Descriptions should not sound like ads. Be succinct.'
     # A raw JSON Schema rather than an Anthropic::BaseModel: the model class route
     # gives a typed parsed_output but cannot express the status enum.
     RESPONSE_SCHEMA = {

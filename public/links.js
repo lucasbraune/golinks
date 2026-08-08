@@ -25,8 +25,25 @@ const fuse = new Fuse(entries, {
     { name: 'description', weight: 0.15 },
     { name: 'url', weight: 0.1 }
   ],
-  threshold: 0.35,
-  ignoreLocation: true
+  // 0.35 sits just past a cliff for short queries: "dis" matched 8 of 16 links,
+  // including claude (one edit from "dis" lands inside "AI assistant"). Note
+  // Fuse thresholds run the other way from intuition — 0 is exact, 1 matches
+  // anything — so tightening means going down. At 0.30 "dis" returns disney and
+  // xmen and nothing else, with every name and typo case unchanged.
+  threshold: 0.30,
+  ignoreLocation: true,
+  // Match each word of the query separately rather than as one pattern. A
+  // single fuzzy pattern tops out around 32 characters, so multi-word queries
+  // arriving from the address bar as ?q= ("spreadsheet pokemon") matched
+  // nothing at all; per-token matching with IDF weighting resolves them, and
+  // single-word queries score identically to before. Needs the full Fuse build,
+  // which is what the CDN module above already is.
+  useTokenSearch: true,
+  // 'any' ranks by relevance across the words that do match, so a query only
+  // has to get part of the phrasing right. The cost is that a query matching
+  // nothing in particular still returns its closest row instead of the "No
+  // links match" state — 'all' is the stricter alternative if that grates.
+  tokenMatch: 'any'
 });
 
 const plural = (n) => `${n} link${n === 1 ? '' : 's'}`;
@@ -65,6 +82,16 @@ function applyFilter() {
 }
 
 search.addEventListener('input', applyFilter);
+
+// The box arrives pre-filled when a name didn't resolve and the catch-all route
+// in server.rb sent the query here as ?q= — which fires no input event, so run
+// the filter once to match what's already in the box. Selecting the text makes
+// the next keystroke replace it rather than append: a query that landed here
+// failed to resolve, so the likely next move is a different guess.
+if (search.value.trim() !== '') {
+  applyFilter();
+  search.select();
+}
 
 document.addEventListener('keydown', (event) => {
   const onSearch = document.activeElement === search;

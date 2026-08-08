@@ -27,7 +27,7 @@
       <circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/>
       <path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
-    <input type="search" id="search" placeholder="Filter links&hellip;" aria-label="Filter links" autocomplete="off" spellcheck="false" autofocus>
+    <input type="search" id="search" value="<%= h(query) %>" placeholder="Filter links&hellip;" aria-label="Filter links" autocomplete="off" spellcheck="false" autofocus>
     <kbd class="search-kbd">/</kbd>
     <p class="search-hint" aria-hidden="true">&uarr;&darr; move &middot; &crarr; open &middot; esc clear</p>
   </div>

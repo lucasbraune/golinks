@@ -14,6 +14,14 @@ module GoLinks
     # fields, alias shape) lives in Link.new instead — see lib/link.rb.
     class InvalidNameError < StandardError; end
 
+    # Pinned rather than left to Encoding.default_external, which follows the
+    # locale: launchd starts the agent with no LANG, so the default there is
+    # US-ASCII and any non-ASCII description ("Cinema München") raises
+    # CSV::InvalidEncodingError on the next read. "bom|" tolerates a byte-order
+    # mark, which some editors add when saving the file by hand.
+    READ_ENCODING = 'bom|utf-8'
+    WRITE_ENCODING = 'utf-8'
+
     # A name matching any of these can never be saved as a link's name or
     # alias via create_link. "links" is also the name of the canonical self-link
     # (see ensure_self_link! below, which constructs it directly and so
@@ -78,14 +86,14 @@ module GoLinks
 
     def write(links)
       tmp = "#{@links_file}.tmp"
-      CSV.open(tmp, 'w') do |csv|
+      CSV.open(tmp, 'w', encoding: WRITE_ENCODING) do |csv|
         csv << %w[name url search_url description]
         links.each { |l| csv << [l.name, l.url, l.search_url, l.description] }
       end
       File.rename(tmp, @links_file)
 
       tmp = "#{@aliases_file}.tmp"
-      CSV.open(tmp, 'w') do |csv|
+      CSV.open(tmp, 'w', encoding: WRITE_ENCODING) do |csv|
         csv << %w[link alias]
         links.each { |l| l.aliases.each { |a| csv << [l.name, a] } }
       end
@@ -96,14 +104,14 @@ module GoLinks
     # row['description'] is nil for a file written before the column existed,
     # which is the same as an empty description — no migration needed.
     def read_links_rows
-      CSV.read(@links_file, headers: true).reject { |row| row['name'].nil? }.map do |row|
+      CSV.read(@links_file, headers: true, encoding: READ_ENCODING).reject { |row| row['name'].nil? }.map do |row|
         { name: row['name'], url: row['url'], search_url: row['search_url'],
           description: row['description'] }
       end
     end
 
     def read_aliases_rows
-      CSV.read(@aliases_file, headers: true).reject { |row| row['alias'].nil? }.map do |row|
+      CSV.read(@aliases_file, headers: true, encoding: READ_ENCODING).reject { |row| row['alias'].nil? }.map do |row|
         { link: row['link'], alias: row['alias'] }
       end
     end

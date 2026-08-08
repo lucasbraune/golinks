@@ -63,7 +63,9 @@ get '/links' do
     { name: l.name, url: l.url, search_url: l.search_url, description: l.description,
       aliases: l.aliases, editable: l.name != 'links' }
   end
-  erb :index, locals: { entries: entries }
+  # q pre-fills the filter, so a name that didn't resolve arrives here as a
+  # search rather than being thrown away (see the catch-all route below).
+  erb :index, locals: { entries: entries, query: params['q'].to_s }
 end
 
 # Backs the "Generate" button on the add/edit form. Under /links so it can
@@ -162,7 +164,13 @@ get '/*' do
   target = GoLinks::ApiHelpers.redirect_target(query, repository.get_links)
   if target
     redirect target, 302
-  else
+  elsif query.to_s.strip.empty?
     redirect '/links'
+  else
+    # No link matched. Rather than discard what was typed, hand it to the list's
+    # filter — the search indexes descriptions as well as names, so "budgeting"
+    # finds the link you meant even though nothing is called that. build_query
+    # so "&", "#" and spaces survive the trip.
+    redirect "/links?#{Rack::Utils.build_query(q: query.strip)}"
   end
 end
