@@ -1,46 +1,59 @@
 :root {
+  /* Both palettes live in one place: light-dark() resolves against the
+     element's color-scheme, so switching themes is a single property change
+     on :root rather than a duplicated block of dark overrides. Left at
+     "light dark" the page follows the system, which is both the default and
+     what a visitor with JS disabled gets. */
   color-scheme: light dark;
 
-  --bg: #f6f6f3;
-  --surface: #ffffff;
-  --surface-hover: #f0f0ed;
-  --border: #e1e1dd;
-  --ink: #1b1d20;
-  --ink-dim: #6b6f76;
-  --accent: #157a44;
-  --accent-dim: rgba(21, 122, 68, 0.08);
-  --accent-dim-hover: rgba(21, 122, 68, 0.14);
-  --accent-solid-dim: #e1efe6;
-  --accent-solid-dim-hover: #d3e6db;
-  --danger: #b3261e;
-  --danger-dim: rgba(179, 38, 30, 0.08);
-  --shadow: 0 1px 2px rgba(20, 20, 15, 0.05), 0 10px 28px rgba(20, 20, 15, 0.05);
+  --bg: light-dark(#f6f6f3, #0a0b0d);
+  --surface: light-dark(#ffffff, #131519);
+  --surface-hover: light-dark(#f0f0ed, #191c21);
+  --border: light-dark(#e1e1dd, #23262c);
+  --ink: light-dark(#1b1d20, #e7e9ec);
+  --ink-dim: light-dark(#6b6f76, #868b93);
+  --accent: light-dark(#157a44, #6bbd85);
+  --accent-dim: light-dark(rgba(21, 122, 68, 0.08), rgba(107, 189, 133, 0.12));
+  --accent-dim-hover: light-dark(rgba(21, 122, 68, 0.14), rgba(107, 189, 133, 0.18));
+  --accent-solid-dim: light-dark(#e1efe6, #1a2b21);
+  --accent-solid-dim-hover: light-dark(#d3e6db, #22392c);
+  --danger: light-dark(#b3261e, #f2a09a);
+  --danger-dim: light-dark(rgba(179, 38, 30, 0.08), rgba(242, 160, 154, 0.12));
+  /* Text on an accent-filled control: near-white on the light theme's deep
+     green, near-black on the dark theme's pale green. */
+  --on-accent: light-dark(#ffffff, #0a0b0d);
+  --shadow:
+    0 1px 2px light-dark(rgba(20, 20, 15, 0.05), rgba(0, 0, 0, 0.3)),
+    0 10px 28px light-dark(rgba(20, 20, 15, 0.05), rgba(0, 0, 0, 0.35));
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0a0b0d;
-    --surface: #131519;
-    --surface-hover: #191c21;
-    --border: #23262c;
-    --ink: #e7e9ec;
-    --ink-dim: #868b93;
-    --accent: #6bbd85;
-    --accent-dim: rgba(107, 189, 133, 0.12);
-    --accent-dim-hover: rgba(107, 189, 133, 0.18);
-    --accent-solid-dim: #1a2b21;
-    --accent-solid-dim-hover: #22392c;
-    --danger: #f2a09a;
-    --danger-dim: rgba(242, 160, 154, 0.12);
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.35);
-  }
+/* An explicit choice pins color-scheme, which flips every light-dark() above
+   in one go — and also themes the native bits CSS variables can't reach:
+   scrollbars, form controls, and the search field's built-in clear button. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Arrowing onto a row below the fold makes the browser scroll it into view,
+   which is instant by default and reads as a jump. The document is the
+   scrolling box here (.card is overflow:hidden, not scrollable), so this
+   catches focus-driven scrolling too — paired with the scroll-margin on
+   .chip, each step eases just past the edge instead of snapping to it. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -53,6 +66,16 @@ body {
   line-height: 1.5;
 }
 
+/* Status on the left, theme control on the right — the same split as
+   .heading-row at the top of the page, so the two ends of the page rhyme. */
+.page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
 .eyebrow {
   display: flex;
   align-items: center;
@@ -60,7 +83,28 @@ body {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--ink-dim);
-  margin: 3rem 0 0;
+  margin: 0;
+}
+
+/* Borrows the alias chip's hover language — an edge appears and the text
+   goes accent — so the footer gains a control without gaining a new visual
+   idiom. The label states the current mode rather than the next one, so it
+   reads as status that happens to be clickable. */
+.theme-toggle {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.theme-toggle:hover {
+  color: var(--accent);
+  border-color: var(--border);
 }
 
 .eyebrow .dot {
@@ -107,7 +151,7 @@ h1 {
    and the placeholder clear of them. */
 .search-bar {
   position: relative;
-  margin-bottom: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .search-icon {
@@ -137,9 +181,49 @@ h1 {
   color: var(--ink-dim);
 }
 
+/* Focused is this input's resting state — autofocus lands here on load and
+   Esc returns here — so it reads as a border-colour shift rather than an
+   alert ring. A signal that is always on shouldn't shout: the loud 2px
+   outline is reserved for row selection below, which is transient and has to
+   be findable at a glance. (Note :focus-visible always matches a focused
+   text input, mouse or keyboard, so this is what every visit looks like.) */
 .search-bar input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow), 0 0 0 3px var(--accent-dim);
+}
+
+/* Forced-colours modes drop box-shadow, so put the indicator back as one. */
+@media (forced-colors: active) {
+  .search-bar input:focus-visible {
+    outline: 2px solid;
+  }
+}
+
+/* The shortcut legend appears only once the box has focus, which is exactly
+   when these keys become relevant — the "/" hint it replaces was hidden at
+   that moment, so nothing ever taught the rest of the keyboard model. Sits
+   absolutely in the gap under the bar so showing it shifts no layout. */
+.search-hint {
+  position: absolute;
+  top: 100%;
+  right: 0.15rem;
+  margin: 0.4rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.search-bar input:focus ~ .search-hint {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .search-hint {
+    transition: opacity 0.15s ease;
+  }
 }
 
 /* The "/" hint is only useful before the box has focus or a value — once
@@ -221,6 +305,33 @@ tbody tr:hover {
   background: var(--surface-hover);
 }
 
+/* Selection is drawn at row scale, in the same visual language as hover,
+   because the row — name plus destination — is what you're aiming at; an
+   outline around the small name chip was the wrong scale for the idea. The
+   left bar is what separates a committed target from a transient hover.
+   Two things earn this treatment and they mean the same thing ("Enter goes
+   here"): the top-match mark while you're still typing, and real keyboard
+   focus once you've arrowed into the list. The mark yields to focus via
+   :has() so only one row is ever marked. */
+/* These two states are deliberately *not* identical. The mark says "Enter
+   goes here"; the focused row says "you are here". They shared one treatment
+   at first, which meant arrowing onto the row that was already marked changed
+   nothing on screen and read as the arrow key being broken. The mark is
+   therefore the quieter of the two — a thinner bar and no tint — so gaining
+   focus is always a visible change. Both keep the bar, so it stays one
+   vocabulary rather than two unrelated signals. */
+#entries-body:not(:has(:focus)) tr.is-top-match td:first-child {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+tbody tr:focus-within {
+  background: var(--surface-hover);
+}
+
+tbody tr:focus-within td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   tbody tr {
     transition: background-color 0.15s ease;
@@ -233,11 +344,19 @@ tbody tr:hover {
   gap: 0.4rem;
 }
 
+/* scroll-margin goes on the chip rather than the row because the chip is what
+   receives focus, and so what gets scrolled into view — without it a row
+   reached by arrow key lands flush against the viewport edge. */
 .chip {
+  scroll-margin-block: 5rem;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   color: var(--accent);
   background: var(--accent-dim);
+  /* Transparent rather than absent so a name chip and an alias chip are the
+     same size — the alias's 1px border used to make it 2px larger — and so
+     both can answer a hover with the same crisp accent edge. */
+  border: 1px solid transparent;
   border-radius: 6px;
   padding: 0.15rem 0.5rem;
   text-decoration: none;
@@ -246,6 +365,7 @@ tbody tr:hover {
 
 .chip:hover {
   background: var(--accent-dim-hover);
+  border-color: var(--accent);
 }
 
 /* Aliases resolve to the exact same destination as their link (see `links` in
@@ -306,19 +426,17 @@ tbody tr:hover {
   }
 }
 
+/* :focus-within covers arrowing onto a row — without it the edit affordance
+   was reachable by Tab but never visible to a keyboard user, since neither
+   :hover nor .edit-button:focus-visible matches a focused name chip. */
 tbody tr:hover .edit-button,
+tbody tr:focus-within .edit-button,
 .edit-button:focus-visible {
   opacity: 1;
 }
 
 .edit-button:hover {
   background: var(--accent-solid-dim-hover);
-}
-
-.dest .arrow {
-  color: var(--accent);
-  margin-right: 0.5rem;
-  user-select: none;
 }
 
 .dest .url {
@@ -338,11 +456,21 @@ tbody tr:hover .edit-button,
   overflow-wrap: anywhere;
 }
 
-a:focus-visible,
-.chip:focus-visible {
+a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* The name chip is the row's default action, not a target in its own right,
+   so the row treatment above is the whole focus indicator — a ring on the
+   chip as well was saying "this is selected" twice at two different scales,
+   and left it ambiguous whether the row or the chip was the unit.
+   Everything else in the row keeps its ring, because those *are* distinct
+   targets and the ring is what says which one you're on: an alias chip
+   (which of several names) or the edit button (go vs. edit). */
+#entries-body .chip:not(.chip-alias):focus-visible {
+  outline: none;
 }
 
 /* Buttons: the accent-filled .btn is for the one primary action per page
@@ -492,18 +620,12 @@ a:focus-visible,
   font-family: var(--font-sans);
   font-size: 0.85rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent);
   border: none;
   padding: 0.55rem 1.1rem;
   border-radius: 8px;
   cursor: pointer;
-}
-
-@media (prefers-color-scheme: dark) {
-  .form-actions button {
-    color: #0a0b0d;
-  }
 }
 
 .form-actions .cancel {

@@ -125,10 +125,22 @@ youtube,yt
 `go/yt` then behaves exactly like `go/youtube`, including with search terms.
 
 The filter box above the list narrows it down as you type, fuzzy-matching
-against names, aliases, and destination URLs (via
-[Fuse.js](https://fusejs.io), vendored in `public/vendor/`). Press `/` from
-anywhere on the page to jump to it, and `Esc` to clear it; an empty box shows
-every link again.
+against names, aliases, and destination URLs (via [Fuse.js](https://fusejs.io),
+loaded as a version-pinned ES module from jsDelivr). Press `/` from anywhere
+on the page to jump to it, and `Esc` to clear it; an empty box shows every
+link again. The best match is highlighted as you type, and `Enter` goes
+straight to it (`Cmd`/`Ctrl` `Enter` opens it in a new tab), so the usual trip
+is a few characters and `Enter`. The up and down arrows step between the
+visible names when you want a different one, and `Esc` steps back out — to the
+search box from a link, then clearing the query.
+
+The control in the footer cycles the colour theme between `system`, `light`
+and `dark`. It starts on `system`, which follows the OS setting; an explicit
+choice is remembered per browser in `localStorage` (no preference stored means
+"follow the system", so clearing site data resets it). The theme is applied by
+`public/theme.js`, which is loaded blocking from `<head>` on every page — a
+deferred or module script would paint the system theme first and then correct
+itself, which is visible as a flash on every load.
 
 ## Use as a Chrome search engine
 

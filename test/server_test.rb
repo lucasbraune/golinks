@@ -71,10 +71,16 @@ describe 'golinks server' do
       assert_includes data.map { |entry| entry['name'] }, 'wiki'
     end
 
-    it 'serves the vendored fuse.js the search filter depends on' do
-      get '/vendor/fuse.min.js'
-      assert_predicate last_response, :ok?
-      assert_includes last_response.body, 'Fuse'
+    # The theme has to be applied before the first paint, so this script must
+    # stay blocking and in <head>. Marking it defer/async/module would still
+    # "work" but would reintroduce a flash of the wrong theme on every load.
+    ['/links', '/links/new'].each do |path|
+      it "loads the theme script blocking in <head> on #{path}" do
+        get path
+        head = last_response.body[%r{<head>(.*?)</head>}m, 1]
+        assert_includes head, '/theme.js'
+        refute_match(/theme\.js[^>]*(?:defer|async|type=)/, head)
+      end
     end
   end
 
