@@ -64,6 +64,18 @@ describe 'golinks server' do
       assert_equal 302, last_response.status
       assert_equal 'http://127.0.0.1/links', location
     end
+
+    it 'embeds the entries as JSON for the client-side search filter' do
+      get '/links'
+      data = JSON.parse(last_response.body[%r{<script type="application/json" id="entries-data">(.*?)</script>}m, 1])
+      assert_includes data.map { |entry| entry['name'] }, 'wiki'
+    end
+
+    it 'serves the vendored fuse.js the search filter depends on' do
+      get '/vendor/fuse.min.js'
+      assert_predicate last_response, :ok?
+      assert_includes last_response.body, 'Fuse'
+    end
   end
 
   describe 'direct name lookup' do

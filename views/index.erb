@@ -12,11 +12,20 @@
     <div>
       <h1>Go links</h1>
       <p class="subtitle">
-        <%= entries.size %> links &mdash;
+        <span id="subtitle-count"><%= entries.size %> link<%= entries.size == 1 ? '' : 's' %></span> &mdash;
         type <code>go &lt;name&gt;</code> in Chrome, or click one below.
       </p>
     </div>
     <a class="btn" href="/links/new">Add link</a>
+  </div>
+
+  <div class="search-bar">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <input type="search" id="search" placeholder="Filter links&hellip;" aria-label="Filter links" autocomplete="off" spellcheck="false">
+    <kbd class="search-kbd">/</kbd>
   </div>
 
   <div class="card">
@@ -24,9 +33,9 @@
       <thead>
         <tr><th>Name</th><th>Destination</th></tr>
       </thead>
-      <tbody>
-        <% entries.each do |entry| %>
-        <tr>
+      <tbody id="entries-body">
+        <% entries.each_with_index do |entry, i| %>
+        <tr data-index="<%= i %>">
           <td class="names-cell">
             <div class="names">
               <a class="chip" href="/<%= h(entry[:name]) %>"><%= h(entry[:name]) %></a>
@@ -44,10 +53,77 @@
           </td>
         </tr>
         <% end %>
+        <tr id="empty-row" hidden>
+          <td colspan="2" class="empty-cell">No links match &#8220;<span id="empty-query"></span>&#8221;.</td>
+        </tr>
       </tbody>
     </table>
   </div>
 
   <p class="eyebrow"><span class="dot"></span>localhost:<%= PORT %></p>
+
+  <script type="application/json" id="entries-data"><%= entries.to_json.gsub('</', '<\/') %></script>
+  <script src="/vendor/fuse.min.js"></script>
+  <script>
+    (() => {
+      const entries = JSON.parse(document.getElementById('entries-data').textContent);
+      const total = entries.length;
+      const rows = document.querySelectorAll('#entries-body tr[data-index]');
+      const emptyRow = document.getElementById('empty-row');
+      const emptyQuery = document.getElementById('empty-query');
+      const subtitleCount = document.getElementById('subtitle-count');
+      const search = document.getElementById('search');
+
+      // Name and alias are what a query is actually trying to recall ("that
+      // youtube one was called yt, right?"); the destination URL is a much
+      // weaker signal but still worth a small boost when someone searches by
+      // the site they remember going to.
+      const fuse = new Fuse(entries, {
+        keys: [
+          { name: 'name', weight: 0.5 },
+          { name: 'aliases', weight: 0.35 },
+          { name: 'url', weight: 0.15 }
+        ],
+        threshold: 0.35,
+        ignoreLocation: true
+      });
+
+      const plural = (n) => `${n} link${n === 1 ? '' : 's'}`;
+
+      function applyFilter() {
+        const query = search.value.trim();
+        const matches = query === '' ? null : new Set(fuse.search(query).map((r) => r.refIndex));
+
+        let shown = 0;
+        rows.forEach((row) => {
+          const visible = matches === null || matches.has(Number(row.dataset.index));
+          row.hidden = !visible;
+          if (visible) shown += 1;
+        });
+
+        emptyRow.hidden = !(matches !== null && shown === 0);
+        emptyQuery.textContent = query;
+        subtitleCount.textContent = matches === null ? plural(total) : `${shown} of ${plural(total)}`;
+      }
+
+      search.addEventListener('input', applyFilter);
+
+      // "/" jumps to the search box from anywhere on the page, the same way
+      // it does on GitHub — a fitting shortcut for a page built around typing
+      // short names quickly.
+      document.addEventListener('keydown', (event) => {
+        if (event.key === '/' && document.activeElement !== search) {
+          event.preventDefault();
+          search.focus();
+        } else if (event.key === 'Escape' && document.activeElement === search) {
+          if (search.value !== '') {
+            search.value = '';
+            applyFilter();
+          }
+          search.blur();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('Gemfile', __dir__)
 require 'bundler/setup'
+require 'json'
 require 'sinatra'
 require_relative 'lib/link_repository'
 require_relative 'lib/api_helpers'

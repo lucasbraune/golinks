@@ -124,6 +124,12 @@ youtube,yt
 
 `go/yt` then behaves exactly like `go/youtube`, including with search terms.
 
+The filter box above the list narrows it down as you type, fuzzy-matching
+against names, aliases, and destination URLs (via
+[Fuse.js](https://fusejs.io), vendored in `public/vendor/`). Press `/` from
+anywhere on the page to jump to it, and `Esc` to clear it; an empty box shows
+every link again.
+
 ## Use as a Chrome search engine
 
 A keyword search engine is what makes the links usable from the address bar:
