@@ -2,7 +2,11 @@
 
 source 'https://rubygems.org'
 
+gem 'anthropic'
 gem 'csv'
+gem 'dotenv'
+gem 'metainspector'
+gem 'nokogiri'
 gem 'puma'
 gem 'rackup'
 gem 'sinatra'

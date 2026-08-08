@@ -2,10 +2,14 @@
 
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('Gemfile', __dir__)
 require 'bundler/setup'
+# Before anything reads ENV. Values already set in the real environment win
+# over .env, so an exported PORT or ANTHROPIC_API_KEY still overrides the file.
+require 'dotenv/load'
 require 'json'
 require 'sinatra'
 require_relative 'lib/link_repository'
 require_relative 'lib/api_helpers'
+require_relative 'lib/description_generator'
 
 PORT = ENV.fetch('PORT', 51242).to_i
 # Binding all interfaces makes the port reachable from the local network (not
@@ -13,6 +17,11 @@ PORT = ENV.fetch('PORT', 51242).to_i
 # header isn't recognized, but the port itself is open.
 set :bind, '0.0.0.0'
 set :port, PORT
+# Static files ship with only Last-Modified, which lets Chrome cache them
+# heuristically — an edited .js or .css then keeps serving the old copy across
+# reloads, which looks exactly like the new code being broken. Everything here
+# is read off local disk, so always revalidate.
+set :static_cache_control, [:no_cache]
 
 # Links live in data/links.csv by default; GOLINKS_LINKS_FILE overrides the
 # path (the tests point it at a fixture). A relative value is resolved against
@@ -24,10 +33,17 @@ LINKS_FILE = File.expand_path(ENV.fetch('GOLINKS_LINKS_FILE', 'data/links.csv'),
 ALIASES_FILE = File.expand_path(ENV.fetch('GOLINKS_ALIASES_FILE', 'data/aliases.csv'), __dir__)
 
 repository = GoLinks::LinkRepository.new(links_file: LINKS_FILE, aliases_file: ALIASES_FILE, port: PORT)
+set :description_generator, GoLinks::DescriptionGenerator.new
 
 helpers do
   def h(text)
     Rack::Utils.escape_html(text)
+  end
+
+  # One generator for the process: it memoizes the Anthropic client, so
+  # rebuilding it per request would throw away the connection pool.
+  def description_generator
+    settings.description_generator
   end
 
   # Shortens text for display only; callers keep the full string for hrefs etc.
@@ -44,15 +60,43 @@ end
 # "/*" would otherwise swallow every path here too.
 get '/links' do
   entries = repository.get_links.map do |l|
-    { name: l.name, url: l.url, search_url: l.search_url, aliases: l.aliases, editable: l.name != 'links' }
+    { name: l.name, url: l.url, search_url: l.search_url, description: l.description,
+      aliases: l.aliases, editable: l.name != 'links' }
   end
   erb :index, locals: { entries: entries }
+end
+
+# Backs the "Generate" button on the add/edit form. Under /links so it can
+# never collide with a stored name (see RESERVED_NAME_PATTERNS), and POST so
+# it isn't something a browser can be talked into prefetching — it costs an
+# API call.
+post '/links/describe' do
+  content_type :json
+  url = params['url'].to_s.strip
+  halt 400, { error: 'Add a destination URL first.' }.to_json if url.empty?
+
+  result = description_generator.describe_link(url)
+  if result.success?
+    { description: result.message }.to_json
+  else
+    # result.message carries the raw exception text, which is useful in the log
+    # and useless in the form. Send the user something they can act on instead.
+    logger.warn("describe_link failed for #{url}: #{result.message}")
+    halt 502, { error: "Couldn't read that page. Write a description yourself." }.to_json
+  end
+# Every exit from this route is JSON, including an unexpected one: Sinatra would
+# otherwise render its HTML error page, and the caller — which asked for JSON and
+# has no use for markup — would fail on the parse instead of showing the error.
+# halt uses throw, not raise, so the halts above pass through untouched.
+rescue StandardError => e
+  logger.error("describe_link crashed for #{params['url']}: #{e.class}: #{e.message}")
+  halt 500, { error: 'Something broke while generating. Write a description yourself.' }.to_json
 end
 
 get '/links/new' do
   erb :link_form, locals: {
     heading: 'Add a link', action: '/links/new',
-    name: '', url: '', search_url: '', aliases: [], error: nil, original_name: nil
+    name: '', url: '', search_url: '', description: '', aliases: [], error: nil, original_name: nil
   }
 end
 
@@ -76,7 +120,8 @@ get '/links/*name/edit' do
 
   erb :link_form, locals: {
     heading: 'Edit link', action: "/links/#{link.name}/edit",
-    name: link.name, url: link.url, search_url: link.search_url, aliases: link.aliases,
+    name: link.name, url: link.url, search_url: link.search_url,
+    description: link.description, aliases: link.aliases,
     error: nil, original_name: link.name
   }
 end

@@ -34,6 +34,7 @@ module GoLinks
       links = read_links_rows.map do |row|
         Link.new(
           name: row[:name], url: row[:url], search_url: row[:search_url],
+          description: row[:description],
           aliases: (aliases_by_name[row[:name]] || []).map { |a| a[:alias] }.sort
         )
       end
@@ -78,8 +79,8 @@ module GoLinks
     def write(links)
       tmp = "#{@links_file}.tmp"
       CSV.open(tmp, 'w') do |csv|
-        csv << %w[name url search_url]
-        links.each { |l| csv << [l.name, l.url, l.search_url] }
+        csv << %w[name url search_url description]
+        links.each { |l| csv << [l.name, l.url, l.search_url, l.description] }
       end
       File.rename(tmp, @links_file)
 
@@ -92,9 +93,12 @@ module GoLinks
     end
 
     # A trailing blank line in the CSV parses as an all-nil row; drop it.
+    # row['description'] is nil for a file written before the column existed,
+    # which is the same as an empty description — no migration needed.
     def read_links_rows
       CSV.read(@links_file, headers: true).reject { |row| row['name'].nil? }.map do |row|
-        { name: row['name'], url: row['url'], search_url: row['search_url'] }
+        { name: row['name'], url: row['url'], search_url: row['search_url'],
+          description: row['description'] }
       end
     end
 

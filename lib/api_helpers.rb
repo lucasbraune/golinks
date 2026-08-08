@@ -8,10 +8,12 @@ module GoLinks
     # LinkRepository::InvalidNameError to re-render the form with the error.
     def self.link_from_params(params)
       search_url = params['search_url'].to_s.strip
+      description = params['description'].to_s.strip
       Link.new(
         name: params['new_name'].to_s.strip,
         url: params['url'].to_s.strip,
         search_url: search_url.empty? ? nil : search_url,
+        description: description.empty? ? nil : description,
         aliases: Array(params['aliases']).map(&:strip).reject(&:empty?)
       )
     end
@@ -23,7 +25,8 @@ module GoLinks
       {
         heading: heading, action: action, original_name: original_name, error: error,
         name: params['new_name'].to_s.strip, url: params['url'].to_s.strip,
-        search_url: params['search_url'].to_s.strip, aliases: Array(params['aliases'])
+        search_url: params['search_url'].to_s.strip,
+        description: params['description'].to_s.strip, aliases: Array(params['aliases'])
       }
     end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module GoLinks
-  Link = Data.define(:name, :url, :search_url, :aliases) do
+  Link = Data.define(:name, :url, :search_url, :description, :aliases) do
     # The alphabet for names and aliases: slash-separated segments, each made of
     # letters, digits, ".", "_", and "-", starting with a letter or digit. This
     # forbids spaces (and "+", "?", "%", leading/trailing/double slashes), which
@@ -22,7 +22,9 @@ module GoLinks
     # constructing a Link directly (see ensure_self_link!), bypassing
     # create_link's checks; uniqueness because only the repository knows what
     # else exists.
-    def initialize(name:, url:, search_url: nil, aliases: [])
+    # description is free text shown in the links list — no validation beyond
+    # being optional, since it's prose rather than an identifier.
+    def initialize(name:, url:, search_url: nil, description: nil, aliases: [])
       raise ArgumentError, 'Name is required.' if name.nil? || name.empty?
       raise ArgumentError, 'Destination URL is required.' if url.nil? || url.empty?
       raise ArgumentError, 'An alias name is required.' if aliases.any?(&:empty?)

@@ -51,6 +51,12 @@
             </div>
           </td>
           <td class="dest">
+            <%# The row's plain-language line, when it has one. Deliberately not a
+                link: the whole point is that it's the one part of the row that
+                isn't an address, so it shouldn't behave like one. %>
+            <% if entry[:description] && !entry[:description].to_s.strip.empty? %>
+            <p class="description"><%= h(entry[:description]) %></p>
+            <% end %>
             <%# tabindex="-1" because this and the name chip are the same action by
                 two routes (the chip goes via the go-link redirect, this goes direct),
                 so a row is exactly two keyboard targets: go, and edit. Still a real

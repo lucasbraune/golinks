@@ -387,7 +387,7 @@ tbody tr:focus-within td:first-child {
 .dest {
   position: relative;
   font-family: var(--font-mono);
-  font-size: 0.88rem;
+  font-size: 0.8rem;
 }
 
 /* Pinned to the destination cell's right edge, revealed on row hover/focus
@@ -439,8 +439,26 @@ tbody tr:focus-within .edit-button,
   background: var(--accent-solid-dim-hover);
 }
 
-.dest .url {
+/* Every other string in a row — name, alias, URL, search URL — is an
+   identifier, and they're all set in mono. The description is the one piece of
+   plain language on the page, so it gets the body sans face at reading size.
+   The two faces do the labelling: what this is, versus where it points. */
+.description {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.45;
   color: var(--ink);
+  margin: 0 0 0.3rem;
+  /* Clear of the edit button, which is pinned to the cell's right edge and
+     would otherwise sit on top of a description that reaches the full width. */
+  padding-right: 2rem;
+}
+
+/* Addresses are always subdued — one rank, whether or not the row has a
+   description above them. .dest sets the size for both the URL and the search
+   URL; .description opts back up to reading size. */
+.dest .url {
+  color: var(--ink-dim);
   text-decoration: none;
   overflow-wrap: anywhere;
 }
@@ -543,6 +561,66 @@ a:focus-visible {
   border-radius: 8px;
   padding: 0.55rem 0.7rem;
   margin-top: 0.4rem;
+}
+
+/* Same shape as .alias-row: the field and its one adjacent control on a line,
+   so the two places in this form that pair an input with a button match. */
+.description-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.description-row input {
+  margin-top: 0;
+}
+
+.generate-button {
+  flex: none;
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.generate-button:hover:not(:disabled) {
+  background: var(--accent-dim-hover);
+  border-color: var(--accent);
+}
+
+/* Disabled while there's no URL to describe and while a request is in flight.
+   Kept visible rather than hidden so the control doesn't move around. */
+.generate-button:disabled {
+  color: var(--ink-dim);
+  background: transparent;
+  border-color: var(--border);
+  cursor: default;
+}
+
+/* Reserves its line whether or not there's a message, so filling the field
+   doesn't shift the rest of the form down. */
+.description-status {
+  min-height: 1.15rem;
+  margin: 0.35rem 0 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+}
+
+.description-status.is-error {
+  color: var(--danger);
+}
+
+/* The label above already carries the field's bottom margin; with the status
+   line taking that role here, drop it so the gap doesn't double. */
+.form-card label:has(.description-row) {
+  margin-bottom: 0;
 }
 
 .aliases-field {

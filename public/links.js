@@ -15,12 +15,15 @@ const search = document.getElementById('search');
 // Name and alias are what a query is actually trying to recall ("that
 // youtube one was called yt, right?"); the destination URL is a much
 // weaker signal but still worth a small boost when someone searches by
-// the site they remember going to.
+// the site they remember going to. Description sits between the two: it
+// catches the query you make when you've forgotten the name entirely and
+// are searching for what the thing does ("budget").
 const fuse = new Fuse(entries, {
   keys: [
-    { name: 'name', weight: 0.5 },
-    { name: 'aliases', weight: 0.35 },
-    { name: 'url', weight: 0.15 }
+    { name: 'name', weight: 0.45 },
+    { name: 'aliases', weight: 0.3 },
+    { name: 'description', weight: 0.15 },
+    { name: 'url', weight: 0.1 }
   ],
   threshold: 0.35,
   ignoreLocation: true

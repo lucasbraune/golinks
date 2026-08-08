@@ -29,6 +29,21 @@
       </label>
 
       <label>
+        Description <span class="hint">optional &mdash; shown next to the name in the links list</span>
+        <div class="description-row">
+          <input type="text" name="description" id="description" value="<%= h(description) %>"
+                 placeholder="Wikipedia free online encyclopedia" maxlength="120">
+          <%# hidden until link_form.js un-hides it: without JS the button can't
+              do anything, and an inert control is worse than no control. %>
+          <button type="button" id="generate-description" class="generate-button" hidden>Generate</button>
+        </div>
+      </label>
+      <%# Sits outside the label so a screen reader doesn't read status text as
+          part of the field's name. aria-live announces the result of a click
+          that otherwise only changes a value the user isn't focused on. %>
+      <p class="description-status" id="description-status" role="status" aria-live="polite"></p>
+
+      <label>
         Search URL <span class="hint">optional &mdash; use %s for the search terms</span>
         <input type="text" name="search_url" value="<%= h(search_url) %>" placeholder="https://en.wikipedia.org/w/index.php?search=%s">
       </label>

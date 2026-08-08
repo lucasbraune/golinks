@@ -23,7 +23,10 @@ echo
 "$DIR/launchd/install.sh"
 
 sleep 1
-STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://localhost:51242/ || true)
+# -L because "/" is the catch-all route with an empty query, which is a 302 to
+# /links by design (typing "go" alone shows the list). Without it a healthy
+# server reports its redirect as a failure.
+STATUS=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 5 http://localhost:51242/ || true)
 if [ "$STATUS" = "200" ]; then
   echo
   echo "Verified: http://localhost:51242/ answers."
