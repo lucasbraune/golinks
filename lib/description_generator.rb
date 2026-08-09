@@ -47,12 +47,13 @@ module GoLinks
     end
 
     def describe_link(url)
+      metadata = page_metadata(url)
       message = client.messages.create(
         model: MODEL,
         max_tokens: MAX_TOKENS,
         # system_ has a trailing underscore in the Ruby SDK so it doesn't shadow Kernel#system.
         system_: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: page_metadata(url) }],
+        messages: [{ role: 'user', content: metadata }],
         output_config: { format: { type: 'json_schema', schema: RESPONSE_SCHEMA } }
       )
 

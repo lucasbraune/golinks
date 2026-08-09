@@ -537,17 +537,67 @@ a:focus-visible {
   margin: 0 0 1.25rem;
 }
 
-.form-card label {
-  display: block;
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  color: var(--ink-dim);
-  margin-bottom: 1.1rem;
+/* A field is a head, a control, and one help line. The help line is absolutely
+   positioned into the gap below the control, so the form's resting height is
+   the same whether or not anything is being explained — and the gap is sized
+   (1.9rem) so that line sits nearer the field it explains than the next
+   field's head, rather than floating between the two. */
+.field {
+  position: relative;
+  margin-bottom: 1.9rem;
 }
 
-.form-card label .hint {
+.field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  /* Full ink, where the old labels were dim: the label is the one thing on
+     this line you scan for, and it was previously the same grey as the prose
+     explaining it. */
+  color: var(--ink);
+  margin-bottom: 0.4rem;
+}
+
+/* Right-aligned so the tags form a column you can read down in one pass —
+   the answer to "what must I fill in?" instead of the word "optional" buried
+   three times mid-sentence. */
+.optional {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
   font-weight: 400;
-  opacity: 0.8;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Held back until the field has focus, which is exactly when its rule becomes
+   relevant — the same trade the search bar's shortcut legend makes. Kept in
+   the DOM and wired up with aria-describedby, so it's announced on focus
+   whether or not it's painted. */
+.field-help {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0.35rem 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.field:focus-within .field-help {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .field-help {
+    transition: opacity 0.15s ease;
+  }
 }
 
 .form-card input {
@@ -560,7 +610,35 @@ a:focus-visible {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.55rem 0.7rem;
-  margin-top: 0.4rem;
+}
+
+/* What you type into these two fields is the tail of a go/ address, so the
+   prefix is printed inside the box, in the same mono face, as unselectable
+   fixed text. The wrapper carries the border and fill and the input inside it
+   carries none, so the pair reads as one control. */
+.input-prefix {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding-left: 0.7rem;
+}
+
+.input-prefix .prefix {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--ink-dim);
+  user-select: none;
+  flex: none;
+}
+
+.input-prefix input {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding-left: 0;
+  min-width: 0;
 }
 
 /* Same shape as .alias-row: the field and its one adjacent control on a line,
@@ -569,10 +647,6 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.description-row input {
-  margin-top: 0;
 }
 
 .generate-button {
@@ -587,6 +661,12 @@ a:focus-visible {
   padding: 0.55rem 0.8rem;
   cursor: pointer;
   white-space: nowrap;
+  /* Sized for the widest label it ever carries — "Generating…", which
+     link_form.js swaps in for the duration of the request (6.75rem measured,
+     rounded up for font variation across platforms). Without this the button
+     grows mid-request and shoves the description field it sits next to. If a
+     future label outgrows this the button just resizes again, as it does now. */
+  min-width: 7rem;
 }
 
 .generate-button:hover:not(:disabled) {
@@ -603,13 +683,16 @@ a:focus-visible {
   cursor: default;
 }
 
-/* Reserves its line whether or not there's a message, so filling the field
-   doesn't shift the rest of the form down. */
+/* Sits in the help line's slot rather than a line of its own, and outranks it
+   (below): a result you asked for beats a standing hint, and the field only
+   ever needs to say one thing at a time. */
 .description-status {
-  min-height: 1.15rem;
-  margin: 0.35rem 0 1.1rem;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0.35rem 0 0;
   font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--ink-dim);
 }
 
@@ -617,24 +700,8 @@ a:focus-visible {
   color: var(--danger);
 }
 
-/* The label above already carries the field's bottom margin; with the status
-   line taking that role here, drop it so the gap doesn't double. */
-.form-card label:has(.description-row) {
-  margin-bottom: 0;
-}
-
-.aliases-field {
-  border: none;
-  padding: 0;
-  margin: 0 0 1.1rem;
-}
-
-.aliases-field legend {
-  padding: 0;
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  color: var(--ink-dim);
-  margin-bottom: 0.4rem;
+.field:has(.description-status:not(:empty)) .field-help {
+  opacity: 0;
 }
 
 .alias-row {
@@ -644,8 +711,10 @@ a:focus-visible {
   margin-bottom: 0.5rem;
 }
 
-.alias-row input {
-  margin-top: 0;
+/* The prefix wrapper is what sizes now, not the input inside it. */
+.alias-row .input-prefix {
+  flex: 1;
+  min-width: 0;
 }
 
 .remove-alias {
@@ -684,6 +753,17 @@ a:focus-visible {
 .form-card input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* The wrapper is the control here, so it's what takes the ring — around the
+   input alone the ring would cut the go/ prefix out of the field. */
+.input-prefix:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.input-prefix input:focus-visible {
+  outline: none;
 }
 
 .form-actions {

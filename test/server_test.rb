@@ -159,12 +159,12 @@ describe 'golinks server' do
       assert_equal 'https://example.com/a/b?q=c+and+d%2Fe', location
     end
 
-    it 'ignores unusable search terms and goes to the link itself' do
-      # The name resolved; only the terms are unusable. Honour the name rather
-      # than dropping "plain whatever" into a filter that would match nothing.
+    it "falls through to the list filter when the link can't search" do
+      # "plain" resolves but has no search_url, so terms after its name can't
+      # be turned into anything — same fallthrough as an unknown name.
       get '/plain%20whatever'
       assert_equal 302, last_response.status
-      assert_equal 'https://example.com/plain', location
+      assert_equal 'http://127.0.0.1/links?q=plain+whatever', location
     end
   end
 

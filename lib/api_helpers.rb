@@ -30,11 +30,13 @@ module GoLinks
       }
     end
 
-    # Returns the URL to redirect to for a query, or nil when no link matched at
-    # all — which is the caller's cue to hand the query to the list's filter
-    # instead. Everything up to the first space is the link name and the rest is
-    # the optional search terms — unambiguous because Link::NAME_PATTERN forbids
-    # spaces in names (slashes are fine; the split is on spaces only).
+    # Returns the URL to redirect to for a query, or nil when there's nothing
+    # to redirect to — no link matched the name, or one did but has no
+    # search_url to turn the extra terms into anything. Either way that's the
+    # caller's cue to hand the query to the list's filter instead. Everything
+    # up to the first space is the link name and the rest is the optional
+    # search terms — unambiguous because Link::NAME_PATTERN forbids spaces in
+    # names (slashes are fine; the split is on spaces only).
     def self.redirect_target(query, links)
       query = query.to_s.strip
       return nil if query.empty?
@@ -43,13 +45,12 @@ module GoLinks
 
       link = links.find { |l| l.name == name || l.aliases.include?(name) }
       return nil unless link
-      return link.url if terms.nil? || terms.strip.empty?
-      # Terms given, but this link can't search. The name still resolved, so
-      # honour it rather than dropping the whole query into the list's filter,
-      # where "plain whatever" would match nothing and read as "no such link".
-      return link.url unless link.search_url
 
-      link.search_url.sub('%s') { Rack::Utils.escape(terms.strip) }
+      if terms.nil? || terms.strip.empty?
+        link.url
+      else
+        link.search_url&.sub('%s') { Rack::Utils.escape(terms.strip) }
+      end
     end
   end
 end

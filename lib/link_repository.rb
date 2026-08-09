@@ -28,7 +28,7 @@ module GoLinks
     # bypasses this check), and "new" and the "links/*" namespace are reserved
     # so a stored link can never be confused with the /links/new and
     # /links/:name/* management routes in server.rb.
-    RESERVED_NAME_PATTERNS = [/\Alinks\z/, %r{\Alinks/}, /\Anew\z/].freeze
+    RESERVED_NAME_PATTERNS = [/\Alinks\z/, /\Ago\z/, %r{\Alinks/}, /\Anew\z/].freeze
 
     def initialize(links_file:, aliases_file:, port:)
       @links_file = links_file
@@ -81,7 +81,7 @@ module GoLinks
     def ensure_self_link!(links)
       return if links.any? { |l| l.name == 'links' }
 
-      links << Link.new(name: 'links', url: "http://localhost:#{@port}/links")
+      links << Link.new(name: 'links', url: "http://localhost:#{@port}/links", aliases: ['go'])
     end
 
     def write(links)

@@ -46,7 +46,7 @@ generateButton.addEventListener('click', async () => {
     if (!response.ok) throw new Error(data.error);
 
     descriptionInput.value = data.description;
-    setStatus('Generated from the page. Edit it if you like.');
+    setStatus('Generated from the page.');
   } catch (error) {
     setStatus(
       error.name === 'AbortError' ? 'That took too long. Write a description yourself.' : error.message,
@@ -73,8 +73,12 @@ document.getElementById('add-alias').addEventListener('click', () => {
   const list = document.getElementById('alias-list');
   const row = document.createElement('div');
   row.className = 'alias-row';
+  // Mirrors the alias row in link_form.erb, prefix and all.
   row.innerHTML =
-    '<input type="text" name="aliases[]" placeholder="yt">' +
+    '<div class="input-prefix">' +
+    '<span class="prefix" aria-hidden="true">go/</span>' +
+    '<input type="text" name="aliases[]" placeholder="yt" aria-label="Alias">' +
+    '</div>' +
     '<button type="button" class="remove-alias" aria-label="Remove alias">&times;</button>';
   list.appendChild(row);
   row.querySelector('input').focus();
