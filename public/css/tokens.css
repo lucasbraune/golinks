@@ -1,0 +1,55 @@
+:root {
+  /* Both palettes live in one place: light-dark() resolves against the
+     element's color-scheme, so switching themes is a single property change
+     on :root rather than a duplicated block of dark overrides. Left at
+     "light dark" the page follows the system, which is both the default and
+     what a visitor with JS disabled gets. */
+  color-scheme: light dark;
+
+  --bg: light-dark(#f6f6f3, #0a0b0d);
+  --surface: light-dark(#ffffff, #131519);
+  --surface-hover: light-dark(#f0f0ed, #191c21);
+  --border: light-dark(#e1e1dd, #23262c);
+  --ink: light-dark(#1b1d20, #e7e9ec);
+  --ink-dim: light-dark(#6b6f76, #868b93);
+  --accent: light-dark(#157a44, #6bbd85);
+  --accent-dim: light-dark(rgba(21, 122, 68, 0.08), rgba(107, 189, 133, 0.12));
+  --accent-dim-hover: light-dark(rgba(21, 122, 68, 0.14), rgba(107, 189, 133, 0.18));
+  --accent-solid-dim: light-dark(#e1efe6, #1a2b21);
+  --accent-solid-dim-hover: light-dark(#d3e6db, #22392c);
+  --danger: light-dark(#b3261e, #f2a09a);
+  --danger-dim: light-dark(rgba(179, 38, 30, 0.08), rgba(242, 160, 154, 0.12));
+  /* Text on an accent-filled control: near-white on the light theme's deep
+     green, near-black on the dark theme's pale green. */
+  --on-accent: light-dark(#ffffff, #0a0b0d);
+  --shadow:
+    0 1px 2px light-dark(rgba(20, 20, 15, 0.05), rgba(0, 0, 0, 0.3)),
+    0 10px 28px light-dark(rgba(20, 20, 15, 0.05), rgba(0, 0, 0, 0.35));
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* One switch for every transition and scroll in the stylesheet, rather
+     than a prefers-reduced-motion media query duplicated at each site that
+     animates. base.css and the component files just read these. */
+  --dur: 0.15s;
+  --scroll: smooth;
+}
+
+/* An explicit choice pins color-scheme, which flips every light-dark() above
+   in one go — and also themes the native bits CSS variables can't reach:
+   scrollbars, form controls, and the search field's built-in clear button. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0s;
+    --scroll: auto;
+  }
+}

@@ -1,0 +1,138 @@
+/* A field is a head, a control, and one help line. The help line is absolutely
+   positioned into the gap below the control, so the form's resting height is
+   the same whether or not anything is being explained — and the gap is sized
+   (1.9rem) so that line sits nearer the field it explains than the next
+   field's head, rather than floating between the two. */
+.field {
+  position: relative;
+  margin-bottom: 1.9rem;
+}
+
+.field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  /* Full ink, where the old labels were dim: the label is the one thing on
+     this line you scan for, and it was previously the same grey as the prose
+     explaining it. */
+  color: var(--ink);
+  margin-bottom: 0.4rem;
+}
+
+/* Right-aligned so the tags form a column you can read down in one pass —
+   the answer to "what must I fill in?" instead of the word "optional" buried
+   three times mid-sentence. */
+.optional {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Held back until the field has focus, which is exactly when its rule becomes
+   relevant — the same trade the search bar's shortcut legend makes. Kept in
+   the DOM and wired up with aria-describedby, so it's announced on focus
+   whether or not it's painted. */
+.field-help {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0.35rem 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) ease;
+}
+
+.field:focus-within .field-help {
+  opacity: 1;
+}
+
+.form-card input {
+  display: block;
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+}
+
+/* Same shape as .alias-row: the field and its one adjacent control on a line,
+   so the two places in this form that pair an input with a button match. */
+.description-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.generate-button {
+  flex: none;
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  /* Sized for the widest label it ever carries — "Generating…", which
+     link_form.js swaps in for the duration of the request (6.75rem measured,
+     rounded up for font variation across platforms). Without this the button
+     grows mid-request and shoves the description field it sits next to. If a
+     future label outgrows this the button just resizes again, as it does now. */
+  min-width: 7rem;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-dim-hover);
+    border-color: var(--accent);
+  }
+
+  /* Disabled while there's no URL to describe and while a request is in
+     flight. Kept visible rather than hidden so the control doesn't move
+     around. */
+  &:disabled {
+    color: var(--ink-dim);
+    background: transparent;
+    border-color: var(--border);
+    cursor: default;
+  }
+}
+
+/* Sits in the help line's slot rather than a line of its own, and outranks it
+   (below): a result you asked for beats a standing hint, and the field only
+   ever needs to say one thing at a time. */
+.description-status {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0.35rem 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+
+  &.is-error {
+    color: var(--danger);
+  }
+}
+
+.field:has(.description-status:not(:empty)) .field-help {
+  opacity: 0;
+}

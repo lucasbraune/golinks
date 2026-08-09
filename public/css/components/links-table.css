@@ -1,0 +1,127 @@
+.empty-cell {
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 0.88rem;
+  padding: 2.5rem 1.25rem;
+}
+
+.links-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    text-align: left;
+    padding: 0.85rem 1.25rem;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+
+  @media (max-width: 30rem) {
+    th,
+    td {
+      padding: 0.7rem 0.85rem;
+    }
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Destination reads top-down (url, then muted search_url); the name chips
+     have no such internal order, so center them against the row instead of
+     pinning to the top, where they'd sit oddly high next to a two-line dest.
+     (vertical-align only works on an actual table cell, so this stays on the
+     td; the flex layout for wrapping chips lives on the .names div inside it —
+     putting display:flex on the td itself would pull it out of table layout
+     and break row-height sharing with its sibling td.) */
+  .names-cell {
+    vertical-align: middle;
+  }
+
+  /* Selection is drawn at row scale, in the same visual language as hover,
+     because the row — name plus destination — is what you're aiming at; an
+     outline around the small name chip was the wrong scale for the idea. The
+     left bar is what separates a committed target from a transient hover.
+     Two things earn this treatment and they mean the same thing ("Enter goes
+     here"): the top-match mark while you're still typing, and real keyboard
+     focus once you've arrowed into the list. The mark yields to focus via
+     :has() so only one row is ever marked. */
+  /* These two states are deliberately *not* identical. The mark says "Enter
+     goes here"; the focused row says "you are here". They shared one treatment
+     at first, which meant arrowing onto the row that was already marked changed
+     nothing on screen and read as the arrow key being broken. The mark is
+     therefore the quieter of the two — a thinner bar and no tint — so gaining
+     focus is always a visible change. Both keep the bar, so it stays one
+     vocabulary rather than two unrelated signals. */
+  tbody:not(:has(:focus)) tr.is-top-match td:first-child {
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  tbody tr {
+    transition: background-color var(--dur) ease;
+
+    &:hover {
+      background: var(--surface-hover);
+    }
+
+    &:focus-within {
+      background: var(--surface-hover);
+
+      td:first-child {
+        box-shadow: inset 3px 0 0 var(--accent);
+      }
+    }
+  }
+}
+
+.dest {
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+/* Every other string in a row — name, alias, URL, search URL — is an
+   identifier, and they're all set in mono. The description is the one piece of
+   plain language on the page, so it gets the body sans face at reading size.
+   The two faces do the labelling: what this is, versus where it points. */
+.description {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--ink);
+  margin: 0 0 0.3rem;
+  /* Clear of the edit button, which is pinned to the cell's right edge and
+     would otherwise sit on top of a description that reaches the full width. */
+  padding-right: 2rem;
+}
+
+/* Addresses are always subdued — one rank, whether or not the row has a
+   description above them. .dest sets the size for both the URL and the search
+   URL; .description opts back up to reading size. */
+.dest .url {
+  color: var(--ink-dim);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+.search-url {
+  margin-top: 0.3rem;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}

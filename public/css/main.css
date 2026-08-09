@@ -1,0 +1,26 @@
+/* Declares the cascade order up front, so it's stated rather than discovered
+   from source order: the base reset can no longer outrank a component, and a
+   low-specificity component rule can be written without checking what else
+   in the stylesheet might reach it. Layer order here is what wins ties, not
+   the order the @imports appear in below (components/* all share one layer
+   — nothing in this app needs one component to outrank another). */
+@layer tokens, base, layout, components;
+
+/* @import costs a serial round trip per file, which is meaningless over
+   loopback. If this ever ships elsewhere, a ~20-line Rake concat task
+   handles it — not needed for a localhost tool. */
+@import url("tokens.css") layer(tokens);
+@import url("base.css") layer(base);
+@import url("layout.css") layer(layout);
+
+@import url("components/card.css") layer(components);
+@import url("components/search-bar.css") layer(components);
+@import url("components/links-table.css") layer(components);
+@import url("components/chip.css") layer(components);
+@import url("components/edit-button.css") layer(components);
+@import url("components/button.css") layer(components);
+@import url("components/form-card.css") layer(components);
+@import url("components/form-field.css") layer(components);
+@import url("components/input-prefix.css") layer(components);
+@import url("components/alias-row.css") layer(components);
+@import url("components/theme-toggle.css") layer(components);

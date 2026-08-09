@@ -1,0 +1,39 @@
+/* What you type into these two fields is the tail of a go/ address, so the
+   prefix is printed inside the box, in the same mono face, as unselectable
+   fixed text. The wrapper carries the border and fill and the input inside it
+   carries none, so the pair reads as one control. */
+.input-prefix {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding-left: 0.7rem;
+
+  .prefix {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--ink-dim);
+    user-select: none;
+    flex: none;
+  }
+
+  input {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding-left: 0;
+    min-width: 0;
+
+    &:focus-visible {
+      outline: none;
+    }
+  }
+
+  /* The wrapper is the control here, so it's what takes the ring — around
+     the input alone the ring would cut the go/ prefix out of the field. */
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+}

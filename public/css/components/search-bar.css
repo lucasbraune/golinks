@@ -1,0 +1,97 @@
+/* Search bar (views/links.erb). The icon and the "/" kbd hint are both
+   absolutely positioned so they layer over the input without affecting its
+   box; the input's own left/right padding is what actually keeps typed text
+   and the placeholder clear of them. */
+.search-bar {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: var(--ink-dim);
+  pointer-events: none;
+}
+
+.search-bar input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 2.5rem 0.65rem 2.6rem;
+  box-shadow: var(--shadow);
+}
+
+.search-bar input::placeholder {
+  color: var(--ink-dim);
+}
+
+/* Focused is this input's resting state — autofocus lands here on load and
+   Esc returns here — so it reads as a border-colour shift rather than an
+   alert ring. A signal that is always on shouldn't shout: the loud 2px
+   outline is reserved for row selection below, which is transient and has to
+   be findable at a glance. (Note :focus-visible always matches a focused
+   text input, mouse or keyboard, so this is what every visit looks like.) */
+.search-bar input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow), 0 0 0 3px var(--accent-dim);
+}
+
+/* Forced-colours modes drop box-shadow, so put the indicator back as one. */
+@media (forced-colors: active) {
+  .search-bar input:focus-visible {
+    outline: 2px solid;
+  }
+}
+
+/* The shortcut legend appears only once the box has focus, which is exactly
+   when these keys become relevant — the "/" hint it replaces was hidden at
+   that moment, so nothing ever taught the rest of the keyboard model. Sits
+   absolutely in the gap under the bar so showing it shifts no layout. */
+.search-hint {
+  position: absolute;
+  top: 100%;
+  right: 0.15rem;
+  margin: 0.4rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) ease;
+}
+
+.search-bar input:focus ~ .search-hint {
+  opacity: 1;
+}
+
+/* The "/" hint is only useful before the box has focus or a value — once
+   either is true it's just clutter sitting on top of what's been typed. */
+.search-kbd {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.05rem 0.4rem;
+  pointer-events: none;
+}
+
+.search-bar input:focus + .search-kbd,
+.search-bar input:not(:placeholder-shown) + .search-kbd {
+  display: none;
+}

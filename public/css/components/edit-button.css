@@ -1,0 +1,43 @@
+/* Pinned to the destination cell's right edge, revealed on row hover/focus
+   rather than shown constantly, so the table reads as data first and "this
+   is editable" second — deliberately large enough to overlap the tail of a
+   long (already-truncated) url once revealed, since at that point the
+   pointer is over the row anyway. Absolute positioning keeps it out of flow,
+   so unlike a layout-affecting element it can't disturb row height (the
+   .names-cell/table-cell lesson from earlier: this is exactly why it isn't
+   e.g. a flex child of .dest). Its background is a solid, opaque color
+   (--accent-solid-dim), not the translucent --accent-dim used elsewhere —
+   this button sits on top of arbitrary url text, and a translucent fill let
+   that text bleed through, reading as a smudge rather than a clean button. */
+.edit-button {
+  position: absolute;
+  top: 50%;
+  right: 0.6rem;
+  transform: translateY(-50%);
+  width: 2.1rem;
+  height: 2.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--accent-solid-dim);
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 1.05rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity var(--dur) ease, background-color var(--dur) ease;
+
+  &:hover {
+    background: var(--accent-solid-dim-hover);
+  }
+}
+
+/* :focus-within covers arrowing onto a row — without it the edit affordance
+   was reachable by Tab but never visible to a keyboard user, since neither
+   :hover nor .edit-button:focus-visible matches a focused name chip. */
+.links-table tr:hover .edit-button,
+.links-table tr:focus-within .edit-button,
+.edit-button:focus-visible {
+  opacity: 1;
+}

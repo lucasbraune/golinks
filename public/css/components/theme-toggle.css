@@ -1,0 +1,20 @@
+/* Borrows the alias chip's hover language — an edge appears and the text
+   goes accent — so the footer gains a control without gaining a new visual
+   idiom. The label states the current mode rather than the next one, so it
+   reads as status that happens to be clickable. */
+.theme-toggle {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--accent);
+    border-color: var(--border);
+  }
+}

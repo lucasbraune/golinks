@@ -1,0 +1,56 @@
+.names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* scroll-margin goes on the chip rather than the row because the chip is what
+   receives focus, and so what gets scrolled into view — without it a row
+   reached by arrow key lands flush against the viewport edge. */
+.chip {
+  scroll-margin-block: 5rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  /* Transparent rather than absent so a name chip and an alias chip are the
+     same size — the alias's 1px border used to make it 2px larger — and so
+     both can answer a hover with the same crisp accent edge. */
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--accent-dim-hover);
+    border-color: var(--accent);
+  }
+}
+
+/* Aliases resolve to the exact same destination as their link (see `links` in
+   server.rb) but are visually secondary: an outline instead of a solid fill,
+   in the muted ink-dim tone rather than the accent, so a row's one canonical
+   name stays the thing the eye lands on first. */
+.chip-alias {
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+
+  &:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: transparent;
+  }
+}
+
+/* The name chip is the row's default action, not a target in its own right,
+   so the row treatment in links-table.css is the whole focus indicator — a
+   ring on the chip as well was saying "this is selected" twice at two
+   different scales, and left it ambiguous whether the row or the chip was
+   the unit. Everything else in the row keeps its ring, because those *are*
+   distinct targets and the ring is what says which one you're on: an alias
+   chip (which of several names) or the edit button (go vs. edit). */
+.links-table .chip:not(.chip-alias):focus-visible {
+  outline: none;
+}

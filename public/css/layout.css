@@ -1,0 +1,61 @@
+/* Status on the left, theme control on the right — the same split as
+   .heading-row at the top of the page, so the two ends of the page rhyme. */
+.page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+.eyebrow .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+
+h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem;
+}
+
+.subtitle {
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.subtitle code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+.heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  /* wrap rather than a max-width breakpoint: the row already has the gap and
+     alignment it needs to look right in either arrangement, so there's no
+     reason to name a width where it should switch. */
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}

@@ -20,15 +20,11 @@
 </div>
 
 <div class="card">
-  <table>
+  <table class="links-table">
     <thead>
       <tr><th>Name</th><th>Destination</th></tr>
     </thead>
-    <%# id kept for style.css's #entries-body selectors (see §6 of the
-        refactor plan — CSS still selects on ids there until the CSS-layers
-        pass); data-entries-body is the JS hook, so JS never has to reach
-        through a style hook to find its target. %>
-    <tbody id="entries-body" data-entries-body>
+    <tbody data-entries-body>
       <% entries.each do |entry| %>
       <%# Keyed by data-name, the natural key, rather than array position:
           links.js looks a row up by name instead of assuming a row's DOM

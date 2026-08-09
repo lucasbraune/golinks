@@ -1,0 +1,34 @@
+* {
+  box-sizing: border-box;
+}
+
+/* Arrowing onto a row below the fold makes the browser scroll it into view,
+   which is instant by default and reads as a jump. The document is the
+   scrolling box here (.card is overflow:hidden, not scrollable), so this
+   catches focus-driven scrolling too — paired with the scroll-margin on
+   .chip, each step eases just past the edge instead of snapping to it. */
+html {
+  scroll-behavior: var(--scroll);
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem 3rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 30rem) {
+  body {
+    padding: 2.5rem 1rem 2rem;
+  }
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
