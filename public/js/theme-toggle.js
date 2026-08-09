@@ -5,6 +5,7 @@
 // changes it. Being a module, it runs after the DOM is parsed, so unlike the
 // old classic-script version this doesn't need to wait for DOMContentLoaded.
 const root = document.documentElement;
+const button = document.querySelector('[data-theme-toggle]');
 
 // localStorage throws in some privacy modes; a missing preference just
 // means "follow the system", which is the default anyway.
@@ -19,8 +20,6 @@ const write = (value) => {
 
 const MODES = ['system', 'light', 'dark'];
 const current = () => (root.dataset.theme === 'light' || root.dataset.theme === 'dark' ? root.dataset.theme : 'system');
-
-const button = document.getElementById('theme-toggle');
 
 const render = () => {
   const mode = current();

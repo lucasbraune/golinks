@@ -96,12 +96,12 @@ describe 'golinks server' do
     it 'pre-fills the filter box from ?q=' do
       get '/links?q=dis'
       assert_predicate last_response, :ok?
-      assert_match(/<input type="search" id="search" value="dis"/, last_response.body)
+      assert_match(/<input type="search" data-search value="dis"/, last_response.body)
     end
 
     it 'embeds the entries as JSON for the client-side search filter' do
       get '/links'
-      data = JSON.parse(last_response.body[%r{<script type="application/json" id="entries-data">(.*?)</script>}m, 1])
+      data = JSON.parse(last_response.body[%r{<script type="application/json" data-entries-data>(.*?)</script>}m, 1])
       assert_includes data.map { |entry| entry['name'] }, 'wiki'
     end
 

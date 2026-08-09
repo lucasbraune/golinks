@@ -2,8 +2,8 @@
 // this script has run — it ships hidden and disabled from link_form.erb.
 const urlInput = document.querySelector('input[name="url"]');
 const descriptionInput = document.getElementById('description');
-const generateButton = document.getElementById('generate-description');
-const statusLine = document.getElementById('description-status');
+const generateButton = document.querySelector('[data-generate-description]');
+const statusLine = document.querySelector('[data-description-status]');
 
 // Deliberately not wired to paste/input on the URL field. A URL arrives by
 // typing, autofill, and drag as well as paste, and on the edit form it's
@@ -58,10 +58,15 @@ generateButton.addEventListener('click', async () => {
   }
 });
 
-document.getElementById('alias-list').addEventListener('click', (event) => {
-  if (!event.target.classList.contains('remove-alias')) return;
-  const rows = document.querySelectorAll('.alias-row');
-  const row = event.target.closest('.alias-row');
+document.querySelector('[data-alias-list]').addEventListener('click', (event) => {
+  if (!event.target.matches('[data-role="remove-alias"]')) return;
+  const rows = document.querySelectorAll('[data-alias-row]');
+  const row = event.target.closest('[data-alias-row]');
+  // The alias list is never empty: blanking the last row instead of
+  // removing it keeps at least one row on the page at all times. This was
+  // originally just a UX call (never leave the list looking closed-off with
+  // zero rows); the clone-the-sibling add button below now depends on it
+  // too, since it's what guarantees there's always a row to clone.
   if (rows.length > 1) {
     row.remove();
   } else {
@@ -69,8 +74,8 @@ document.getElementById('alias-list').addEventListener('click', (event) => {
   }
 });
 
-document.getElementById('add-alias').addEventListener('click', () => {
-  const list = document.getElementById('alias-list');
+document.querySelector('[data-add-alias]').addEventListener('click', () => {
+  const list = document.querySelector('[data-alias-list]');
   // link_form.erb always renders at least one alias row — (aliases.empty? ?
   // [''] : aliases) — and remove-alias blanks the last one rather than
   // removing it, so there is always a row here to copy. That makes the ERB
@@ -79,7 +84,7 @@ document.getElementById('add-alias').addEventListener('click', () => {
   // autocomplete="off" spellcheck="false"). cloneNode copies the value
   // *attribute*, not what's been typed, so blank it explicitly rather than
   // rely on that.
-  const rows = list.querySelectorAll('.alias-row');
+  const rows = list.querySelectorAll('[data-alias-row]');
   const row = rows[rows.length - 1].cloneNode(true);
   row.querySelector('input').value = '';
   list.appendChild(row);

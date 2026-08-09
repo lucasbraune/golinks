@@ -47,14 +47,14 @@
                aria-describedby="description-help" autocomplete="off">
         <%# hidden until link_form.js un-hides it: without JS the button can't
             do anything, and an inert control is worse than no control. %>
-        <button type="button" id="generate-description" class="generate-button" hidden>Generate</button>
+        <button type="button" data-generate-description class="generate-button" hidden>Generate</button>
       </div>
       <p class="field-help" id="description-help">Shown next to the name in the links list</p>
       <%# Shares the help line's slot and outranks it: a result you asked for
           beats a standing hint. Outside the label so a screen reader doesn't
           read status text as part of the field's name; aria-live announces a
           click that otherwise only changes a value you aren't focused on. %>
-      <p class="description-status" id="description-status" role="status" aria-live="polite"></p>
+      <p class="description-status" data-description-status role="status" aria-live="polite"></p>
     </div>
 
     <div class="field">
@@ -76,18 +76,18 @@
         <span id="aliases-label">Aliases</span>
         <span class="optional">Optional</span>
       </div>
-      <div class="alias-list" id="alias-list">
+      <div class="alias-list" data-alias-list>
         <% (aliases.empty? ? [''] : aliases).each do |a| %>
-        <div class="alias-row">
+        <div class="alias-row" data-alias-row>
           <div class="input-prefix">
             <span class="prefix" aria-hidden="true">go/</span>
             <input type="text" name="aliases[]" value="<%= h(a) %>" placeholder="yt" aria-label="Alias" autocomplete="off" spellcheck="false">
           </div>
-          <button type="button" class="remove-alias" aria-label="Remove alias">&times;</button>
+          <button type="button" class="remove-alias" data-role="remove-alias" aria-label="Remove alias">&times;</button>
         </div>
         <% end %>
       </div>
-      <button type="button" id="add-alias" class="link-button add-alias">Add another</button>
+      <button type="button" data-add-alias class="link-button add-alias">Add another</button>
       <p class="field-help" id="aliases-help">Other names for the same link</p>
     </div>
 

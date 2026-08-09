@@ -34,10 +34,10 @@
 
   <footer class="page-footer">
     <p class="eyebrow"><span class="dot"></span>localhost:<%= PORT %></p>
-    <%# Label and aria-label are filled in by theme.js, which is the only thing
-        that knows the current mode. Empty here so a no-JS page shows no
-        control rather than a dead one. %>
-    <button type="button" id="theme-toggle" class="theme-toggle"></button>
+    <%# Label and aria-label are filled in by js/theme-toggle.js, which is the
+        only thing that knows the current mode. Empty here so a no-JS page
+        shows no control rather than a dead one. %>
+    <button type="button" class="theme-toggle" data-theme-toggle></button>
   </footer>
 
   <script type="module" src="/js/theme-toggle.js"></script>

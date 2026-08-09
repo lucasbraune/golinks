@@ -1,14 +1,19 @@
-const entries = JSON.parse(document.getElementById('entries-data').textContent);
+const entries = JSON.parse(document.querySelector('[data-entries-data]').textContent);
 const total = entries.length;
-const rows = Array.from(document.querySelectorAll('#entries-body tr[data-index]'));
-// One name link per row, same order as `rows` and `entries` — rows are
-// rendered in entries order and never reshuffled, so a row's position in
-// this array doubles as its entry index.
-const nameLinks = rows.map((row) => row.querySelector('.chip:not(.chip-alias)'));
-const emptyRow = document.getElementById('empty-row');
-const emptyQuery = document.getElementById('empty-query');
-const subtitleCount = document.getElementById('subtitle-count');
-const search = document.getElementById('search');
+const entriesBody = document.querySelector('[data-entries-body]');
+const rowsByName = new Map(
+  Array.from(entriesBody.querySelectorAll('tr[data-name]')).map((row) => [row.dataset.name, row])
+);
+// Rows keyed by data-name, the natural key, rather than array position — a
+// row's position in `entries` no longer has to match its position in the
+// DOM for this array to line up with it.
+const rows = entries.map((entry) => rowsByName.get(entry.name));
+// One name link per row, same order as `rows` and `entries`.
+const nameLinks = rows.map((row) => row.querySelector('[data-role="name-link"]'));
+const emptyRow = document.querySelector('[data-empty-row]');
+const emptyQuery = document.querySelector('[data-empty-query]');
+const subtitleCount = document.querySelector('[data-subtitle-count]');
+const search = document.querySelector('[data-search]');
 
 let Fuse;
 try {
