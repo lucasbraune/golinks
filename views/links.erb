@@ -1,0 +1,68 @@
+<div class="heading-row">
+  <div>
+    <h1>Go links</h1>
+    <p class="subtitle">
+      <span id="subtitle-count" aria-live="polite"><%= entries.size %> link<%= entries.size == 1 ? '' : 's' %></span> &mdash;
+      type <code>go &lt;name&gt;</code> in Chrome, or click one below.
+    </p>
+  </div>
+  <a class="btn" href="/links/new">Add link</a>
+</div>
+
+<div class="search-bar">
+  <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <input type="search" id="search" value="<%= h(query) %>" placeholder="Filter links&hellip;" aria-label="Filter links" autocomplete="off" spellcheck="false" autofocus>
+  <kbd class="search-kbd">/</kbd>
+  <p class="search-hint" aria-hidden="true">&uarr;&darr; move &middot; &crarr; open &middot; esc clear</p>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Destination</th></tr>
+    </thead>
+    <tbody id="entries-body">
+      <% entries.each_with_index do |entry, i| %>
+      <tr data-index="<%= i %>">
+        <td class="names-cell">
+          <div class="names">
+            <a class="chip" href="/<%= h(entry[:name]) %>"><%= h(entry[:name]) %></a>
+            <%# Also tabindex="-1": an alias resolves to the same destination as the
+                name, so it's another route to the row's one "go" action rather than a
+                target of its own. Keeps a row at two tab stops — go, then edit — no
+                matter how many names it has. Still clickable. %>
+            <% entry[:aliases].each do |alias_name| %><a class="chip chip-alias" href="/<%= h(alias_name) %>" tabindex="-1"><%= h(alias_name) %></a><% end %>
+          </div>
+        </td>
+        <td class="dest">
+          <%# The row's plain-language line, when it has one. Deliberately not a
+              link: the whole point is that it's the one part of the row that
+              isn't an address, so it shouldn't behave like one. %>
+          <% if entry[:description] && !entry[:description].to_s.strip.empty? %>
+          <p class="description"><%= h(entry[:description]) %></p>
+          <% end %>
+          <%# tabindex="-1" because this and the name chip are the same action by
+              two routes (the chip goes via the go-link redirect, this goes direct),
+              so a row is exactly two keyboard targets: go, and edit. Still a real
+              link for clicking and for "copy link address" on the raw destination. %>
+          <a class="url" href="<%= h(entry[:url]) %>" tabindex="-1"><%= h(truncate(entry[:url])) %></a>
+          <% if entry[:search_url] && !entry[:search_url].to_s.strip.empty? %>
+          <div class="search-url"><%= h(truncate(entry[:search_url])) %></div>
+          <% end %>
+          <% if entry[:editable] %>
+          <a class="edit-button" href="/links/<%= h(entry[:name]) %>/edit" aria-label="Edit &#8220;<%= h(entry[:name]) %>&#8221;">&#9998;</a>
+          <% end %>
+        </td>
+      </tr>
+      <% end %>
+      <tr id="empty-row" hidden>
+        <td colspan="2" class="empty-cell">No links match &#8220;<span id="empty-query"></span>&#8221;.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script type="application/json" id="entries-data"><%= entries.to_json.gsub('</', '<\/') %></script>

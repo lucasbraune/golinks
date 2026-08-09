@@ -234,6 +234,16 @@ describe 'golinks server' do
       refute_includes last_response.body, 'duckduckgo'
     end
 
+    # @page_script is set from a rescue block, not just the happy-path GET, so
+    # it's easy to forget on one of the two POST routes. Miss it and the form
+    # comes back after an error with a dead Generate button and no alias
+    # controls — the exact state a user is most likely to be in, and the
+    # least likely path to be exercised by hand.
+    it 'keeps the form script wired up after a validation error' do
+      post '/links/new', new_name: '', url: 'https://duckduckgo.com'
+      assert_includes last_response.body, '/link_form.js'
+    end
+
     it 'rejects a blank url' do
       post '/links/new', new_name: 'ddg', url: ''
       assert_includes last_response.body, 'required'

@@ -1,130 +1,108 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= h(heading) %> &mdash; Go links</title>
-  <link rel="stylesheet" href="/style.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%2363b37b'/%3E%3C/svg%3E">
-  <%# Needed here too, not just on the links page: without it, navigating to
-      the form would paint the system theme before correcting itself. %>
-  <script src="/theme.js"></script>
-</head>
-<body>
-  <h1><%= h(heading) %></h1>
+<h1><%= h(heading) %></h1>
 
-  <div class="card form-card">
-    <% if error %>
-      <p class="form-error"><%= h(error) %></p>
-    <% end %>
-    <form method="post" action="<%= h(action) %>">
-      <%# Every field is the same three parts in the same order: a head (name,
-          plus an "Optional" tag when it is), the control, and one help line.
-          The help line is only painted while the field has focus — see
-          .field-help — so the resting form is labels and inputs, and the
-          explanation arrives at the moment you're actually in the field. %>
-      <div class="field">
-        <div class="field-head">
-          <label for="name">Name</label>
-        </div>
-        <%# The go/ prefix is the field's real subject: what you type here is
-            the tail of go/<name>. Showing it does the job three sentences of
-            hint text were doing, and ties the form to the thing it edits. %>
-        <div class="input-prefix">
-          <span class="prefix" aria-hidden="true">go/</span>
-          <input type="text" id="name" name="new_name" value="<%= h(name) %>" placeholder="wiki"
-                 aria-describedby="name-help" required autofocus>
-        </div>
-        <p class="field-help" id="name-help">Letters, numbers, and . _ - / &mdash; no spaces</p>
+<div class="card form-card">
+  <% if error %>
+    <p class="form-error"><%= h(error) %></p>
+  <% end %>
+  <form method="post" action="<%= h(action) %>">
+    <%# Every field is the same three parts in the same order: a head (name,
+        plus an "Optional" tag when it is), the control, and one help line.
+        The help line is only painted while the field has focus — see
+        .field-help — so the resting form is labels and inputs, and the
+        explanation arrives at the moment you're actually in the field. %>
+    <div class="field">
+      <div class="field-head">
+        <label for="name">Name</label>
       </div>
-
-      <div class="field">
-        <div class="field-head">
-          <label for="url">Destination URL</label>
-        </div>
-        <%# Chrome otherwise offers every URL ever typed into a field named
-            "url" here, which is noise: the destination is pasted from the tab
-            you're linking to, not recalled. Same for search_url below. %>
-        <input type="text" id="url" name="url" value="<%= h(url) %>" placeholder="https://en.wikipedia.org"
-               autocomplete="off" spellcheck="false" required>
+      <%# The go/ prefix is the field's real subject: what you type here is
+          the tail of go/<name>. Showing it does the job three sentences of
+          hint text were doing, and ties the form to the thing it edits. %>
+      <div class="input-prefix">
+        <span class="prefix" aria-hidden="true">go/</span>
+        <input type="text" id="name" name="new_name" value="<%= h(name) %>" placeholder="wiki"
+               aria-describedby="name-help" required autofocus>
       </div>
+      <p class="field-help" id="name-help">Letters, numbers, and . _ - / &mdash; no spaces</p>
+    </div>
 
-      <div class="field">
-        <div class="field-head">
-          <label for="description">Description</label>
-          <span class="optional">Optional</span>
-        </div>
-        <div class="description-row">
-          <input type="text" name="description" id="description" value="<%= h(description) %>"
-                 placeholder="Wikipedia free online encyclopedia" maxlength="120"
-                 aria-describedby="description-help" autocomplete="off">
-          <%# hidden until link_form.js un-hides it: without JS the button can't
-              do anything, and an inert control is worse than no control. %>
-          <button type="button" id="generate-description" class="generate-button" hidden>Generate</button>
-        </div>
-        <p class="field-help" id="description-help">Shown next to the name in the links list</p>
-        <%# Shares the help line's slot and outranks it: a result you asked for
-            beats a standing hint. Outside the label so a screen reader doesn't
-            read status text as part of the field's name; aria-live announces a
-            click that otherwise only changes a value you aren't focused on. %>
-        <p class="description-status" id="description-status" role="status" aria-live="polite"></p>
+    <div class="field">
+      <div class="field-head">
+        <label for="url">Destination URL</label>
       </div>
+      <%# Chrome otherwise offers every URL ever typed into a field named
+          "url" here, which is noise: the destination is pasted from the tab
+          you're linking to, not recalled. Same for search_url below. %>
+      <input type="text" id="url" name="url" value="<%= h(url) %>" placeholder="https://en.wikipedia.org"
+             autocomplete="off" spellcheck="false" required>
+    </div>
 
-      <div class="field">
-        <div class="field-head">
-          <label for="search-url">Search URL</label>
-          <span class="optional">Optional</span>
-        </div>
-        <input type="text" id="search-url" name="search_url" value="<%= h(search_url) %>"
-               placeholder="https://en.wikipedia.org/w/index.php?search=%s" aria-describedby="search-url-help"
-               autocomplete="off" spellcheck="false">
-        <p class="field-help" id="search-url-help">Put %s where the search terms go</p>
+    <div class="field">
+      <div class="field-head">
+        <label for="description">Description</label>
+        <span class="optional">Optional</span>
       </div>
+      <div class="description-row">
+        <input type="text" name="description" id="description" value="<%= h(description) %>"
+               placeholder="Wikipedia free online encyclopedia" maxlength="120"
+               aria-describedby="description-help" autocomplete="off">
+        <%# hidden until link_form.js un-hides it: without JS the button can't
+            do anything, and an inert control is worse than no control. %>
+        <button type="button" id="generate-description" class="generate-button" hidden>Generate</button>
+      </div>
+      <p class="field-help" id="description-help">Shown next to the name in the links list</p>
+      <%# Shares the help line's slot and outranks it: a result you asked for
+          beats a standing hint. Outside the label so a screen reader doesn't
+          read status text as part of the field's name; aria-live announces a
+          click that otherwise only changes a value you aren't focused on. %>
+      <p class="description-status" id="description-status" role="status" aria-live="polite"></p>
+    </div>
 
-      <%# role="group" + aria-labelledby rather than fieldset/legend: same
-          semantics, and it lets the head be the same flex row as every other
-          field's instead of fighting legend's layout rules. %>
-      <div class="field" role="group" aria-labelledby="aliases-label" aria-describedby="aliases-help">
-        <div class="field-head">
-          <span id="aliases-label">Aliases</span>
-          <span class="optional">Optional</span>
-        </div>
-        <div class="alias-list" id="alias-list">
-          <% (aliases.empty? ? [''] : aliases).each do |a| %>
-          <div class="alias-row">
-            <div class="input-prefix">
-              <span class="prefix" aria-hidden="true">go/</span>
-              <input type="text" name="aliases[]" value="<%= h(a) %>" placeholder="yt" aria-label="Alias" autocomplete="off" spellcheck="false">
-            </div>
-            <button type="button" class="remove-alias" aria-label="Remove alias">&times;</button>
+    <div class="field">
+      <div class="field-head">
+        <label for="search-url">Search URL</label>
+        <span class="optional">Optional</span>
+      </div>
+      <input type="text" id="search-url" name="search_url" value="<%= h(search_url) %>"
+             placeholder="https://en.wikipedia.org/w/index.php?search=%s" aria-describedby="search-url-help"
+             autocomplete="off" spellcheck="false">
+      <p class="field-help" id="search-url-help">Put %s where the search terms go</p>
+    </div>
+
+    <%# role="group" + aria-labelledby rather than fieldset/legend: same
+        semantics, and it lets the head be the same flex row as every other
+        field's instead of fighting legend's layout rules. %>
+    <div class="field" role="group" aria-labelledby="aliases-label" aria-describedby="aliases-help">
+      <div class="field-head">
+        <span id="aliases-label">Aliases</span>
+        <span class="optional">Optional</span>
+      </div>
+      <div class="alias-list" id="alias-list">
+        <% (aliases.empty? ? [''] : aliases).each do |a| %>
+        <div class="alias-row">
+          <div class="input-prefix">
+            <span class="prefix" aria-hidden="true">go/</span>
+            <input type="text" name="aliases[]" value="<%= h(a) %>" placeholder="yt" aria-label="Alias" autocomplete="off" spellcheck="false">
           </div>
-          <% end %>
+          <button type="button" class="remove-alias" aria-label="Remove alias">&times;</button>
         </div>
-        <button type="button" id="add-alias" class="link-button add-alias">Add another</button>
-        <p class="field-help" id="aliases-help">Other names for the same link</p>
+        <% end %>
       </div>
+      <button type="button" id="add-alias" class="link-button add-alias">Add another</button>
+      <p class="field-help" id="aliases-help">Other names for the same link</p>
+    </div>
 
-      <div class="form-actions">
-        <%# The button says what it does, and says the same thing the page
-            promised: "Add a link" saves with "Add link". %>
-        <button type="submit"><%= original_name ? 'Save changes' : 'Add link' %></button>
-        <a class="cancel" href="/links">Cancel</a>
-      </div>
-    </form>
+    <div class="form-actions">
+      <%# The button says what it does, and says the same thing the page
+          promised: "Add a link" saves with "Add link". %>
+      <button type="submit"><%= original_name ? 'Save changes' : 'Add link' %></button>
+      <a class="cancel" href="/links">Cancel</a>
+    </div>
+  </form>
 
-    <% if original_name %>
-    <form method="post" action="/links/<%= h(original_name) %>/delete" class="delete-form"
-          onsubmit="return confirm('Delete this link?')">
-      <button type="submit" class="link-button danger">Delete this link</button>
-    </form>
-    <% end %>
-  </div>
-
-  <footer class="page-footer">
-    <p class="eyebrow"><span class="dot"></span>localhost:<%= PORT %></p>
-    <button type="button" id="theme-toggle" class="theme-toggle"></button>
-  </footer>
-
-  <script src="/link_form.js"></script>
-</body>
-</html>
+  <% if original_name %>
+  <form method="post" action="/links/<%= h(original_name) %>/delete" class="delete-form"
+        onsubmit="return confirm('Delete this link?')">
+    <button type="submit" class="link-button danger">Delete this link</button>
+  </form>
+  <% end %>
+</div>
