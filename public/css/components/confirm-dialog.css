@@ -1,0 +1,55 @@
+/* showModal() supplies the centering (the UA stylesheet fixes and centers an
+   open <dialog>), the focus trap, inert on the rest of the page, Escape-to-
+   close, and promotion to the top layer — so there's no z-index to manage
+   and no backdrop element to build here, just its look. */
+.confirm-dialog {
+  max-width: 24rem;
+  width: calc(100% - 2rem);
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  strong {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+
+  /* Same treatment as .form-actions button (button.css) but in the danger
+     color: the one place in the app that asks for an "are you sure", so it
+     gets the one solid-red button. --on-accent is reused rather than adding
+     a --on-danger token — it already means "light text on a dark fill,
+     light-dark aware", which is exactly what a filled --danger button needs
+     too. */
+  .danger {
+    font: inherit;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--on-accent);
+    background: var(--danger);
+    border: none;
+    padding: 0.55rem 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+}

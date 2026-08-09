@@ -90,3 +90,20 @@ document.querySelector('[data-add-alias]').addEventListener('click', () => {
   list.appendChild(row);
   row.querySelector('input').focus();
 });
+
+const deleteForm = document.querySelector('[data-delete-form]');
+const deleteDialog = document.querySelector('[data-delete-dialog]');
+
+// Only on the edit form: the add form has nothing to delete.
+if (deleteForm) {
+  deleteForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    deleteDialog.showModal();
+  });
+
+  // .submit() deliberately does not fire a submit event, so this can't loop
+  // back into the handler above.
+  deleteDialog.addEventListener('close', () => {
+    if (deleteDialog.returnValue === 'delete') deleteForm.submit();
+  });
+}

@@ -9,7 +9,7 @@
   <a class="btn" href="/links/new">Add link</a>
 </div>
 
-<div class="search-bar">
+<search class="search-bar">
   <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/>
     <path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -17,7 +17,7 @@
   <input type="search" data-search value="<%= h(query) %>" placeholder="Filter links&hellip;" aria-label="Filter links" autocomplete="off" spellcheck="false" autofocus>
   <kbd class="search-kbd">/</kbd>
   <p class="search-hint" aria-hidden="true">&uarr;&darr; move &middot; &crarr; open &middot; esc clear</p>
-</div>
+</search>
 
 <div class="card">
   <table class="links-table">
@@ -68,4 +68,4 @@
   </table>
 </div>
 
-<script type="application/json" data-entries-data><%= entries.to_json.gsub('</', '<\/') %></script>
+<script type="application/json" data-entries-data><%= json_script(entries) %></script>

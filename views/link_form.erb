@@ -100,9 +100,21 @@
   </form>
 
   <% if original_name %>
-  <form method="post" action="/links/<%= h(original_name) %>/delete" class="delete-form"
-        onsubmit="return confirm('Delete this link?')">
+  <%# The dialog is a sibling of the delete form, not nested inside it: HTML
+      forbids nested forms, and the dialog carries its own (method="dialog",
+      below). %>
+  <form method="post" action="/links/<%= h(original_name) %>/delete" class="delete-form" data-delete-form>
     <button type="submit" class="link-button danger">Delete this link</button>
   </form>
+
+  <dialog class="confirm-dialog" data-delete-dialog>
+    <p>Delete <strong>go/<%= h(original_name) %></strong>?</p>
+    <%# method="dialog" closes the dialog and sets returnValue from the button
+        that submitted it, so neither button needs a click listener. %>
+    <form method="dialog" class="confirm-actions">
+      <button value="cancel" class="link-button">Cancel</button>
+      <button value="delete" class="danger">Delete</button>
+    </form>
+  </dialog>
   <% end %>
 </div>

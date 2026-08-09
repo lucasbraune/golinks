@@ -52,6 +52,13 @@ helpers do
 
     "#{text[0, length - 1]}…"
   end
+
+  # Serializes obj for embedding in a <script type="application/json"> island.
+  # "</" is escaped so a value containing a literal "</script>" can't close
+  # the tag early and run whatever follows it as markup.
+  def json_script(obj)
+    obj.to_json.gsub('</', '<\/')
+  end
 end
 
 # Management routes live under /links so a stored name can never collide with
