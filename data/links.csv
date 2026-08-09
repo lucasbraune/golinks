@@ -1,10 +1,12 @@
 name,url,search_url,description
+bing,https://www.bing.com/images,https://www.bing.com/images/search?q=%s,Bing image search engine
 boss,https://www.bosscoins.com/en/index.php,,Boss Coins: custom challenge coins and medals
 cinema,https://cinema-muenchen.com/showtimes/?time=week,,Cinema Filmtheater München
 claude,https://www.claude.ai/,,Claude: AI assistant by Anthropic
-claude-console,https://platform.claude.com/dashboard,,Claude Platform dashboard for AI development
+claude-dash,https://platform.claude.com/dashboard,,Claude Platform dashboard for AI development
 disney,https://www.disneyplus.com/,,Disney+ streaming service!
 economist,https://www.economist.com,https://www.economist.com/search?q=%s,The Economist - news and analysis
+fa,https://www.fundoamazonia.gov.br/pt/home/,,Fundo Amazônia - Amazon rainforest conservation fund
 gh,https://github.com/,https://github.com/search?q=%s,GitHub: developer platform
 google,https://www.google.com,https://www.google.com/search?q=%s,Google search
 links,http://localhost:51242/links,,Go links management (this page)
