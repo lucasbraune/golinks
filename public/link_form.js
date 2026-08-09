@@ -71,15 +71,17 @@ document.getElementById('alias-list').addEventListener('click', (event) => {
 
 document.getElementById('add-alias').addEventListener('click', () => {
   const list = document.getElementById('alias-list');
-  const row = document.createElement('div');
-  row.className = 'alias-row';
-  // Mirrors the alias row in link_form.erb, prefix and all.
-  row.innerHTML =
-    '<div class="input-prefix">' +
-    '<span class="prefix" aria-hidden="true">go/</span>' +
-    '<input type="text" name="aliases[]" placeholder="yt" aria-label="Alias">' +
-    '</div>' +
-    '<button type="button" class="remove-alias" aria-label="Remove alias">&times;</button>';
+  // link_form.erb always renders at least one alias row — (aliases.empty? ?
+  // [''] : aliases) — and remove-alias blanks the last one rather than
+  // removing it, so there is always a row here to copy. That makes the ERB
+  // loop the only place this markup exists, rather than a second copy here
+  // that can drift from it (as the old innerHTML string had: it was missing
+  // autocomplete="off" spellcheck="false"). cloneNode copies the value
+  // *attribute*, not what's been typed, so blank it explicitly rather than
+  // rely on that.
+  const rows = list.querySelectorAll('.alias-row');
+  const row = rows[rows.length - 1].cloneNode(true);
+  row.querySelector('input').value = '';
   list.appendChild(row);
   row.querySelector('input').focus();
 });
