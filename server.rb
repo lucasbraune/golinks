@@ -59,7 +59,7 @@ end
 # catch-all route below, since Sinatra matches routes in definition order and
 # "/*" would otherwise swallow every path here too.
 get '/links' do
-  @page_script = '/links.js'
+  @page_script = '/js/pages/links.js'
   entries = repository.get_links.map do |l|
     { name: l.name, url: l.url, search_url: l.search_url, description: l.description,
       aliases: l.aliases, editable: l.name != 'links' }
@@ -98,7 +98,7 @@ end
 
 get '/links/new' do
   @title = 'Add a link'
-  @page_script = '/link_form.js'
+  @page_script = '/js/pages/link_form.js'
   erb :link_form, locals: {
     heading: 'Add a link', action: '/links/new',
     name: '', url: '', search_url: '', description: '', aliases: [], error: nil, original_name: nil
@@ -110,7 +110,7 @@ post '/links/new' do
   redirect '/links'
 rescue ArgumentError, GoLinks::LinkRepository::InvalidNameError => e
   @title = 'Add a link'
-  @page_script = '/link_form.js'
+  @page_script = '/js/pages/link_form.js'
   erb :link_form, locals: GoLinks::ApiHelpers.link_form_locals(
     params, heading: 'Add a link', action: '/links/new', original_name: nil, error: e.message
   )
@@ -126,7 +126,7 @@ get '/links/*name/edit' do
   halt 404, "No link named “#{h(params['name'])}”." unless link
 
   @title = 'Edit link'
-  @page_script = '/link_form.js'
+  @page_script = '/js/pages/link_form.js'
   erb :link_form, locals: {
     heading: 'Edit link', action: "/links/#{link.name}/edit",
     name: link.name, url: link.url, search_url: link.search_url,
@@ -145,7 +145,7 @@ post '/links/*name/edit' do
   redirect '/links'
 rescue ArgumentError, GoLinks::LinkRepository::InvalidNameError => e
   @title = 'Edit link'
-  @page_script = '/link_form.js'
+  @page_script = '/js/pages/link_form.js'
   erb :link_form, locals: GoLinks::ApiHelpers.link_form_locals(
     params, heading: 'Edit link', action: "/links/#{old_name}/edit",
             original_name: old_name, error: e.message

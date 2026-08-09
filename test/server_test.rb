@@ -105,15 +105,16 @@ describe 'golinks server' do
       assert_includes data.map { |entry| entry['name'] }, 'wiki'
     end
 
-    # The theme has to be applied before the first paint, so this script must
-    # stay blocking and in <head>. Marking it defer/async/module would still
+    # The theme has to be applied before the first paint, so the boot script
+    # must stay blocking and inlined in <head>, not pulled in as a module or
+    # deferred external file. Marking it defer/async/module would still
     # "work" but would reintroduce a flash of the wrong theme on every load.
     ['/links', '/links/new'].each do |path|
-      it "loads the theme script blocking in <head> on #{path}" do
+      it "applies the stored theme blocking in <head> on #{path}" do
         get path
         head = last_response.body[%r{<head>(.*?)</head>}m, 1]
-        assert_includes head, '/theme.js'
-        refute_match(/theme\.js[^>]*(?:defer|async|type=)/, head)
+        assert_match(/<script>[^<]*localStorage\.getItem\('theme'\)/m, head)
+        refute_match(/<script[^>]*(?:defer|async|type=)[^>]*>[^<]*localStorage\.getItem\('theme'\)/m, head)
       end
     end
   end
@@ -241,7 +242,7 @@ describe 'golinks server' do
     # least likely path to be exercised by hand.
     it 'keeps the form script wired up after a validation error' do
       post '/links/new', new_name: '', url: 'https://duckduckgo.com'
-      assert_includes last_response.body, '/link_form.js'
+      assert_includes last_response.body, '/js/pages/link_form.js'
     end
 
     it 'rejects a blank url' do
