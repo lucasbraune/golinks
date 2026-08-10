@@ -102,12 +102,13 @@ if (Fuse) {
 
   // The box arrives pre-filled when a name didn't resolve and the catch-all route
   // in server.rb sent the query here as ?q= — which fires no input event, so run
-  // the filter once to match what's already in the box. Selecting the text makes
-  // the next keystroke replace it rather than append: a query that landed here
-  // failed to resolve, so the likely next move is a different guess.
+  // the filter once to match what's already in the box. Caret goes at the end
+  // (not a selection) so the next keystroke appends to the failed query instead
+  // of wiping it out — useful for e.g. adding a search term after a bare name.
   if (search.value.trim() !== '') {
     applyFilter();
-    search.select();
+    const end = search.value.length;
+    search.setSelectionRange(end, end);
   }
 
   document.addEventListener('keydown', (event) => {
