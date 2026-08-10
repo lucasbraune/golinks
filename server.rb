@@ -33,17 +33,12 @@ LINKS_FILE = File.expand_path(ENV.fetch('GOLINKS_LINKS_FILE', 'data/links.csv'),
 ALIASES_FILE = File.expand_path(ENV.fetch('GOLINKS_ALIASES_FILE', 'data/aliases.csv'), __dir__)
 
 repository = GoLinks::LinkRepository.new(links_file: LINKS_FILE, aliases_file: ALIASES_FILE, port: PORT)
-set :description_generator, GoLinks::DescriptionGenerator.new
+# Cheap to build: DescriptionGenerator itself lazy-loads its Anthropic client
+description_generator = GoLinks::DescriptionGenerator.new
 
 helpers do
   def h(text)
     Rack::Utils.escape_html(text)
-  end
-
-  # One generator for the process: it memoizes the Anthropic client, so
-  # rebuilding it per request would throw away the connection pool.
-  def description_generator
-    settings.description_generator
   end
 
   # Shortens text for display only; callers keep the full string for hrefs etc.
@@ -66,7 +61,6 @@ end
 # catch-all route below, since Sinatra matches routes in definition order and
 # "/*" would otherwise swallow every path here too.
 get '/links' do
-  @page_script = '/js/pages/links.js'
   entries = repository.get_links.map do |l|
     { name: l.name, url: l.url, search_url: l.search_url, description: l.description,
       aliases: l.aliases, editable: l.name != 'links' }
@@ -105,7 +99,6 @@ end
 
 get '/links/new' do
   @title = 'Add a link'
-  @page_script = '/js/pages/link_form.js'
   erb :link_form, locals: {
     heading: 'Add a link', action: '/links/new',
     name: '', url: '', search_url: '', description: '', aliases: [], error: nil, original_name: nil
@@ -117,7 +110,6 @@ post '/links/new' do
   redirect '/links'
 rescue ArgumentError, GoLinks::LinkRepository::InvalidNameError => e
   @title = 'Add a link'
-  @page_script = '/js/pages/link_form.js'
   erb :link_form, locals: GoLinks::ApiHelpers.link_form_locals(
     params, heading: 'Add a link', action: '/links/new', original_name: nil, error: e.message
   )
@@ -133,7 +125,6 @@ get '/links/*name/edit' do
   halt 404, "No link named “#{h(params['name'])}”." unless link
 
   @title = 'Edit link'
-  @page_script = '/js/pages/link_form.js'
   erb :link_form, locals: {
     heading: 'Edit link', action: "/links/#{link.name}/edit",
     name: link.name, url: link.url, search_url: link.search_url,
@@ -152,7 +143,6 @@ post '/links/*name/edit' do
   redirect '/links'
 rescue ArgumentError, GoLinks::LinkRepository::InvalidNameError => e
   @title = 'Edit link'
-  @page_script = '/js/pages/link_form.js'
   erb :link_form, locals: GoLinks::ApiHelpers.link_form_locals(
     params, heading: 'Edit link', action: "/links/#{old_name}/edit",
             original_name: old_name, error: e.message

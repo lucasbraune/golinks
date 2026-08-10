@@ -25,11 +25,6 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 </head>
 <body>
-  <%# Instance variables carry the page frame — title, script tags, anything
-      the layout itself draws — from the route through to here, the way they
-      do in Rails; locals stay scoped to the one template that declares them.
-      So page *data* (entries, query, form fields) arrives as locals, and what
-      only the layout reads (@title, @page_script) is an ivar. %>
   <main><%= yield %></main>
 
   <footer class="page-footer">
@@ -41,12 +36,5 @@
   </footer>
 
   <script type="module" src="/js/theme-toggle.js"></script>
-  <%# Optional: a page with no behaviour of its own sets nothing and gets no
-      tag, rather than a broken src. The path is written out in full at the
-      route rather than derived from the template name — the mapping is worth
-      reading, not inferring. %>
-  <% if @page_script %>
-  <script type="module" src="<%= @page_script %>"></script>
-  <% end %>
 </body>
 </html>
