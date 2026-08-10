@@ -4,7 +4,7 @@ boss,https://www.bosscoins.com/en/index.php,,Boss Coins: custom challenge coins 
 cinema,https://cinema-muenchen.com/showtimes/?time=week,,Cinema Filmtheater München
 claude,https://www.claude.ai/,,Claude: AI assistant by Anthropic
 claude-dash,https://platform.claude.com/dashboard,,Claude Platform dashboard for AI development
-disney,https://www.disneyplus.com/,,Disney+ streaming service!
+disney,https://www.disneyplus.com/,,Disney+ streaming service
 economist,https://www.economist.com,https://www.economist.com/search?q=%s,The Economist - news and analysis
 fa,https://www.fundoamazonia.gov.br/pt/home/,,Fundo Amazônia - Amazon rainforest conservation fund
 gh,https://github.com/,https://github.com/search?q=%s,GitHub: developer platform
@@ -14,6 +14,7 @@ netflix,https://www.netflix.com/browse,,Netflix streaming movies and TV shows
 pokemon,https://www.youtube.com/show/VLPLRcHmntfmJ8BNpfON92grhkv6WxuqF5vD?season=4&sbp=CgE0GgAqC3ozaE1YNjVLaHRnQAFKDVBTWmRkYzdVUFNTeG8%253D,,Pokémon anime
 pokemon-fillers,https://docs.google.com/spreadsheets/d/e/2PACX-1vRRcvt8VScb_LO-GESJaCxIscFG_sj_0NcNqp_YevIlIp8_yC3HlKMmzRxEoI-B24LDjPpTW9S3PVCY/pubhtml,,Pokémon anime filler episode list
 sap-garden,https://tickets.sapgarden.com/shop?hiqp=$_hqpU0Fkck5iME8zYUtvZWttZXFtOUJzM2NpUDZpdEhRMjE4QjJCTzkvRWtGZ0pEdGx3N2o2NFExN0xLSzNTczVsNys4M1NxNGpBRlA3TCtSQnlnUTV2SmFJdXFwNm13N1h2TkdGR1Axd05hVm1LYkQ2VnJEV3FvTmRFbUY2NUtTalpjTDRhMXNMbVlSQTJSdzVHMnloWQ==,,SAP Garden - Ice skating (patinação no gelo)
+usage,https://claude.ai/new#settings/usage,,Claude AI usage settings page
 xmen,https://www.disneyplus.com/browse/entity-8dc91ed4-cdca-4fab-9723-d3d42f382d34,,X-Men '97 on Disney+
 ynab,https://app.ynab.com/,,YNAB budgeting and personal finance app
 youtube,https://www.youtube.com,https://www.youtube.com/results?search_query=%s,YouTube - video sharing and streaming platform
