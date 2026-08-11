@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= @title ? "#{h(@title)} &mdash; Go links" : 'Go links' %></title>
+  <title><%= @title ? "#{h(@title)} &mdash; Go Links" : 'Go Links' %></title>
   <link rel="stylesheet" href="/css/main.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%2363b37b'/%3E%3C/svg%3E">
   <%# Blocking, in <head>, and not a module: this has to set the theme before
@@ -25,16 +25,85 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 </head>
 <body>
+  <%# First thing on every page, above even the h1: until these two steps are done,
+      nothing the app does is reachable from the address bar, which makes this the
+      only thing on screen that matters on a fresh install. Once dismissed it's gone,
+      so it costs the rest of the app nothing thereafter — which is also why it lives
+      here rather than on the list alone. Setting up the shortcut is about the app,
+      not about one page, and a reader who lands on the add-link form first shouldn't
+      have to find their way to the list to be told.
+
+      Outside <main> deliberately: it's a standing notice about the app, not the
+      content of whichever page you're on. Body-level, so it takes the same column.
+
+      Shown to every browser. The steps describe Chrome's settings screen, so they're
+      only actionable in Chrome — but that's a judgement about whether they're useful
+      to you, not something the server should be making on your behalf from a
+      User-Agent string. The dismiss button is the answer for anyone they don't apply
+      to, and it's a better one than a sniff that has to keep pace with which
+      Chromium browsers do and don't share that screen.
+
+      tabindex="-1" so restoring it from the footer can move focus here — not a tab
+      stop, just a focus target (see js/setup-callout.js). %>
+  <aside class="setup-callout" data-setup-callout tabindex="-1" hidden>
+    <button type="button" class="setup-dismiss" data-setup-dismiss aria-label="Dismiss setup instructions">&times;</button>
+    <h2 class="setup-title">Activate Go Links in Chrome</h2>
+    <p class="setup-lead">To activate Go Links:</p>
+    <%# A real <ol>: these are a sequence, and the second step is meaningless
+        before the first, so the numbers carry information rather than decorate. %>
+    <ol class="setup-steps">
+      <li>
+        Navigate to <strong>Chrome settings &gt; Search engine &gt; Manage search engines and site search &gt; Site search</strong>
+        or paste <%= copyable('chrome://settings/searchEngines') %> into address bar.
+      </li>
+      <li>
+        Add a site search entry with name <%= copyable('Go Links') %>,
+        shortcut <%= copyable('go') %> and URL <%= copyable("http://localhost:#{PORT}/%s") %>.
+      </li>
+    </ol>
+  </aside>
+  <%# Unhidden here rather than from the deferred module: a module runs after first
+      paint, so the callout would appear a beat late and shove the whole page down
+      under the pointer. Only the read-and-unhide is inline — copy, dismiss and
+      restore wire up in the modules at the end of the body. Same split as the theme
+      script above, for the same reason. %>
+  <script>
+    try {
+      if (!localStorage.getItem('setupDismissed')) {
+        document.querySelector('[data-setup-callout]').hidden = false;
+      }
+    } catch {
+      /* localStorage throws in some privacy modes; showing the callout is the right default. */
+      document.querySelector('[data-setup-callout]').hidden = false;
+    }
+  </script>
+
   <main><%= yield %></main>
+
+  <%# Belongs to js/copyable.js, not to the callout that happens to hold today's only
+      copy chips — so it sits outside the <aside>, where dismissing the callout can't
+      take it with it. position: fixed, so where it is in the document doesn't affect
+      where it lands. Doubles as the live region: the confirmation a mouse user sees
+      float next to the cursor is the same one a screen reader announces. %>
+  <span class="copied-label" data-copied-label role="status" aria-live="polite"></span>
 
   <footer class="page-footer">
     <p class="eyebrow"><span class="dot"></span>localhost:<%= PORT %></p>
-    <%# Label and aria-label are filled in by js/theme-toggle.js, which is the
-        only thing that knows the current mode. Empty here so a no-JS page
-        shows no control rather than a dead one. %>
-    <button type="button" class="theme-toggle" data-theme-toggle></button>
+    <div class="footer-actions">
+      <%# Always visible, whether or not the callout is currently up — a control that
+          appears only after you dismiss something is one you have to have noticed to
+          know about, and this is the standing answer to "how do I set this up
+          again?". It sits next to the callout it reaches, on every page, so neither
+          needs a flag from the route. %>
+      <button type="button" class="theme-toggle setup-restore" data-setup-restore>setup instructions</button>
+      <%# Label and aria-label are filled in by js/theme-toggle.js, which is the
+          only thing that knows the current mode. %>
+      <button type="button" class="theme-toggle" data-theme-toggle></button>
+    </div>
   </footer>
 
   <script type="module" src="/js/theme-toggle.js"></script>
+  <script type="module" src="/js/copyable.js"></script>
+  <script type="module" src="/js/setup-callout.js"></script>
 </body>
 </html>

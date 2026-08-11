@@ -11,6 +11,10 @@
 # Ruby comes from the rbenv shim, so it follows rbenv version switches. REPO_DIR
 # is resolved from this script's own location so it works regardless of the
 # working directory or where the repo is checked out.
+#
+# The port is not set here: it comes from the LaunchAgent's EnvironmentVariables
+# (PORT=51242, in the plist template alongside this file). Running this wrapper by
+# hand therefore gets server.rb's own default of 8080, not the service's port.
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 REPO_DIR=$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)
 exec "$HOME/.rbenv/shims/ruby" "$REPO_DIR/server.rb"

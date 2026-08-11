@@ -1,0 +1,128 @@
+/* The one thing between a fresh install and a working `go` shortcut, so it's the
+   first thing on every page — above even the h1 — and outranks the list on a first
+   visit. Same radius and shadow as .card, so it belongs to the page while reading
+   as a panel on top of it rather than as part of it; what keeps it from looking
+   like a second list card is the accent in its edge and its numbers.
+
+   No `display` anywhere in here on purpose: the callout ships with the [hidden]
+   attribute (views/layout.erb unhides it once localStorage says it wasn't
+   dismissed), and an author `display` would beat the UA's [hidden] rule and
+   render it regardless. */
+.setup-callout {
+  position: relative;
+  /* Dim, like .subtitle and the destination urls in the list: this is supporting
+     prose about the page, not the page's content. Set once on the container so
+     every string inside it is the same tone — the heading below is the single
+     deliberate exception, which is the same relationship h1 and .subtitle already
+     have at the top of the list. */
+  color: var(--ink-dim);
+  /* Paper and a shadow, not a green wash. A tinted fill was the obvious answer and
+     it doesn't survive the dim ink: the page ground is already near-white, so any
+     tint dark enough to *read* as green puts the prose under the 4.5:1 AA floor
+     (--accent-dim measured 4.19:1, and a hand-picked #E8F2EA only reached 4.40).
+     Lightness is the axis with room in it, so the callout takes .card's surface and
+     shadow — which is what already reads as "a panel, not the page" here — and
+     spends its accent on the edge, the step numbers and the copy chips instead. */
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  box-shadow: var(--shadow);
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem;
+  /* Matches .heading-row's bottom margin, so whichever of the two is first on
+     the page sits the same distance from what follows it. */
+  margin-bottom: 2rem;
+}
+
+.setup-title {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  /* Clears the dismiss button, so a wrapped title can't run under it. */
+  margin: 0 2.5rem 0.5rem 0;
+}
+
+/* Inherits the container's ink deliberately: the lead is a sentence the steps
+   complete, not a caption on them, so giving it a tone of its own split one
+   instruction into two and made whichever half was quieter look skippable. */
+.setup-lead {
+  font-size: 0.9rem;
+  margin: 0 0 0.6rem;
+}
+
+/* Native <ol> markers rather than hand-drawn ones — the browser already numbers a
+   list, and these steps are numbered because their order is real.
+
+   The numbers line up with the left edge of the lead paragraph above, so the
+   callout has one margin rather than a paragraph and then an indented block. That
+   takes marker-inside plus a negative text-indent — the old hanging-indent trick —
+   because an outside marker is placed by the browser somewhere inside the list's
+   padding and can't be pinned to a specific offset. A counter and a positioned
+   ::before would also do it, at the cost of Chrome reading the generated "1." out
+   on top of the list's own numbering. First line starts at 1.6rem - 1.6rem = 0;
+   wrapped lines keep the 1.6rem, so step text stays in one column. */
+.setup-steps {
+  font-size: 0.9rem;
+  margin: 0;
+  padding-left: 0;
+  list-style-position: inside;
+
+  li {
+    padding-left: 1.6rem;
+    text-indent: -1.6rem;
+    margin-bottom: 0.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  /* Accent and mono rather than a third grey: the numbers are structure, not
+     prose, so they're distinguished by taking the app's accent — the same move
+     the eyebrow's dot and the name chips make — instead of by being a fainter
+     version of the text they sit beside. */
+  li::marker {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  /* Chrome's own menu path, quoted as UI rather than emphasized as prose: the
+     reader is matching these words against a screen, so they get the body face
+     at full weight and no italics. */
+  strong {
+    font-weight: 600;
+  }
+}
+
+/* Quiet, and only as large as it needs to be to hit: dismissing is available,
+   not encouraged. Borrows .edit-button's size and radius so the app has one
+   idea of what a small icon button looks like. */
+.setup-dismiss {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--ink-dim);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color var(--dur) ease, border-color var(--dur) ease;
+
+  &:hover {
+    color: var(--ink);
+    border-color: var(--border);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}

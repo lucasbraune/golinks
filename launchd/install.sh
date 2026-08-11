@@ -1,7 +1,8 @@
 #!/bin/sh
 # Installs the golinks LaunchAgent so the server starts automatically at login,
-# running as you (no root), on port 51242. Safe to re-run after moving the
-# repo or editing the plist template.
+# running as you (no root), on port 51242 — the plist template is where that port
+# is chosen, and it's the port the Chrome shortcut points at. Safe to re-run after
+# moving the repo or editing the plist template.
 set -eu
 
 LABEL=com.lucasbraune.golinks

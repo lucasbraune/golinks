@@ -14,9 +14,13 @@ Run it as your normal user (nothing needs root). It:
    installs the gems listed in `Gemfile` into `vendor/bundle` inside this repo,
    so they don't depend on or pollute your global gem set;
 2. installs the per-user LaunchAgent that runs the server as you — see [Run as
-   a background service](#run-as-a-background-service) — and prints the steps
-   for adding the `go` keyword to Chrome (see [Use as a Chrome search
-   engine](#use-as-a-chrome-search-engine)).
+   a background service](#run-as-a-background-service) — and then opens
+   <http://localhost:51242> in Chrome, where the link list walks through the one
+   remaining step: adding the `go` shortcut (see [Use as a Chrome search
+   engine](#use-as-a-chrome-search-engine)). Chrome specifically, because those
+   steps walk through Chrome's own settings screen, so that's where following
+   them means being; without Chrome installed it falls back to your default
+   browser and says so.
 
 rbenv itself must already be installed with a Ruby version selected (`rbenv
 install` / `rbenv global`). Gems are tied to the Ruby version they were
@@ -36,15 +40,19 @@ go                      -> the list of all links
 ruby server.rb
 ```
 
-The server listens on http://localhost:51242 by default (an uncommon high
-port, chosen to avoid collisions and because binding the tidier port 80 needs
-root). It binds all interfaces (`0.0.0.0`), so the port is reachable from the
-local network; requests whose `Host` header isn't a recognized local name are
-rejected with `403`, which blocks casual access, but the port itself is open.
-To use a different port, set the `PORT` environment variable:
+This listens on http://localhost:8080 — the development port. The installed
+background service runs on **51242** instead (an uncommon high port, chosen to
+avoid collisions and because binding the tidier port 80 needs root), so a server
+you start by hand to try something out doesn't fight the one already answering
+`go` links in the background. That also means 51242 is the port the Chrome
+shortcut points at, since the service is the server that's always up.
+
+Requests whose `Host` header isn't a recognized local name are rejected with
+`403`, so the app is only ever reached as localhost. To use a different port, set
+the `PORT` environment variable:
 
 ```sh
-PORT=8080 ruby server.rb
+PORT=3000 ruby server.rb
 ```
 
 Stop it with `Ctrl-C`.
@@ -97,7 +105,9 @@ yt,https://www.youtube.com,https://www.youtube.com/results?search_query=%s
 
 `http://localhost:51242/yt` opens YouTube's home page and
 `http://localhost:51242/yt rory sutherland` opens
-`https://www.youtube.com/results?search_query=rory+sutherland`.
+`https://www.youtube.com/results?search_query=rory+sutherland`. (51242 here and
+below is the background service's port; a server started by hand with `ruby
+server.rb` is on 8080.)
 
 The file is reloaded on every request, so edits apply without restarting the
 server. A canonical `links` entry points back at this server's own list page,
@@ -106,7 +116,7 @@ so `go links` shows the link list (it is re-inserted automatically if deleted).
 ### Adding, editing, and aliasing links
 
 Links can be managed by editing `data/links.csv` directly, or from the browser
-at `go/links`: **Add link** at the top adds a new one, and hovering a row reveals
+at `go links`: **Add link** at the top adds a new one, and hovering a row reveals
 an edit button (&#9998;) at the right of its destination that opens an edit
 page (which also has a **Delete this link** action). Edits write straight to
 `data/links.csv` and, like manual edits, apply immediately.
@@ -122,7 +132,7 @@ link,alias
 youtube,yt
 ```
 
-`go/yt` then behaves exactly like `go/youtube`, including with search terms.
+`go yt` then behaves exactly like `go youtube`, including with search terms.
 
 The filter box above the list narrows it down as you type, fuzzy-matching
 against names, aliases, and destination URLs (via [Fuse.js](https://fusejs.io),
@@ -137,32 +147,54 @@ search box from a link, then clearing the query.
 The control in the footer cycles the colour theme between `system`, `light`
 and `dark`. It starts on `system`, which follows the OS setting; an explicit
 choice is remembered per browser in `localStorage` (no preference stored means
-"follow the system", so clearing site data resets it). The theme is applied by
-`public/theme.js`, which is loaded blocking from `<head>` on every page — a
-deferred or module script would paint the system theme first and then correct
-itself, which is visible as a flash on every load.
+"follow the system", so clearing site data resets it). The theme is applied by a
+blocking inline script in `<head>` on every page — a deferred or module script
+would paint the system theme first and then correct itself, which is visible as a
+flash on every load. Only that read-and-apply is inline; the toggle button is
+wired up by `public/js/theme-toggle.js`.
 
 ## Use as a Chrome search engine
 
 A keyword search engine is what makes the links usable from the address bar:
 type `go wiki` instead of a full URL. Add one under Chrome Settings > Search
-engine > Site search > Add:
+engine > Manage search engines and site search > Site search > Add:
 
+- **Search engine:** `Go Links`
 - **Shortcut:** `go`
-- **URL:** `http://localhost:51242/%s`
+- **URL with %s in place of query:** `http://localhost:51242/%s`
+
+The link list shows these same two steps in a callout at the top of the page,
+with each value as a click-to-copy button — Chrome won't let a page link to
+`chrome://settings/searchEngines`, so copying and pasting is as direct as it
+gets. The callout appears in every browser, not just Chrome: the steps only apply
+to Chrome, but which browsers share that settings screen is a moving target
+(Brave, Arc and Chromium send Chrome's User-Agent verbatim, while Edge and Opera
+carry `Chrome/` in theirs but have their own screen), and guessing it wrong hides
+the one thing a new install needs.
+
+Dismiss the callout with the &times; once setup is done; `setup instructions` in
+the footer brings it back, and stays there whether or not the callout is showing.
+Dismissal is remembered per browser in `localStorage`, which is the right
+granularity, since the Chrome entry itself is per browser.
 
 Then `go wiki` takes you to Wikipedia and `go yt rory sutherland` searches
 YouTube. Chrome encodes the spaces in multi-word searches as `+`; the server
 decodes the path query-style, so `+` becomes a space just like `%20` (the one
-edge case: a literal `+` in search terms must be typed as `%2B`). The port in
-the URL must match the one the server runs on (default `51242`).
+edge case: a literal `+` in search terms must be typed as `%2B`). The port in the
+URL has to match the server the shortcut is meant to reach, which is the
+background service — `51242`, set in the LaunchAgent (see below), not
+`server.rb`'s development default of `8080`.
 
 ## Run as a background service
 
 A per-user launchd LaunchAgent
 (`launchd/com.lucasbraune.golinks.plist.template`) starts the server at your
-login, running as you (no root), and restarts it if it crashes. `./install.sh`
-sets it up; to (re)install it directly:
+login, running as you (no root), on port `51242`, and restarts it if it crashes.
+The plist template is where that port is chosen — `server.rb` itself defaults to
+`8080`, the development port. `./install.sh` repeats `51242` to check and open the
+agent once it's installed, so changing the port means editing both files and
+re-running the installer. `./install.sh` sets the agent up; to (re)install it
+directly:
 
 ```sh
 ./launchd/install.sh

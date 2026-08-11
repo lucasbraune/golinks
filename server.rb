@@ -11,10 +11,15 @@ require_relative 'lib/link_repository'
 require_relative 'lib/api_helpers'
 require_relative 'lib/description_generator'
 
-PORT = ENV.fetch('PORT', 51242).to_i
-# Binding all interfaces makes the port reachable from the local network (not
-# just this machine). Host authorization (below) rejects requests whose Host
-# header isn't recognized, but the port itself is open.
+# 8080 is the development default — what `ruby server.rb` picks up. The installed
+# background service deliberately runs somewhere else (PORT=51242, set by the
+# LaunchAgent in launchd/), so starting a server by hand to try something out
+# doesn't collide with the one already answering `go` links in the background. That
+# also means 51242 is the port the Chrome site-search entry points at, since the
+# agent is the server that's always up.
+PORT = ENV.fetch('PORT', 8080).to_i
+# Sinatra's host authorization rejects any request whose Host header isn't a
+# recognized local name, so the app is only ever reached as localhost.
 set :bind, '0.0.0.0'
 set :port, PORT
 # Static files ship with only Last-Modified, which lets Chrome cache them
@@ -53,6 +58,28 @@ helpers do
   # the tag early and run whatever follows it as markup.
   def json_script(obj)
     obj.to_json.gsub('</', '<\/')
+  end
+
+  # One of the literal strings the setup callout asks you to type into Chrome's
+  # settings, as a click-to-copy control. A <button>, not a link: copying is an
+  # action and none of these navigate anywhere. That's not just a preference for
+  # the chrome://settings one — a page is not allowed to navigate to a chrome://
+  # URL at all, which is the reason the whole component is built around copying
+  # rather than linking.
+  #
+  # tabindex="-1" for the same reason the alias chips and destination urls in
+  # views/links.erb carry it: keeping every one of these in the tab order put
+  # four stops in front of the search box, which is the thing a keyboard user
+  # came to the page for — and the four strings are all readable on screen
+  # anyway, so what tabbing to them would buy is a shortcut for retyping, not
+  # access to anything. Copying is left to the mouse. Still a button, so it's
+  # still announced and activatable as one under a screen reader.
+  def copyable(text)
+    escaped = h(text)
+    # The accessible name says what activating it does; the visible string is
+    # only the thing being copied.
+    attrs = %(class="copyable" data-copyable tabindex="-1" aria-label="Copy #{escaped}")
+    %(<button type="button" #{attrs}>#{escaped}</button>)
   end
 end
 
@@ -157,9 +184,10 @@ post '/links/*name/delete' do
   redirect '/links'
 end
 
-# The link name (and optional "<space>search terms") comes from the URL path,
-# so http://go/wiki and http://go/yt rory sutherland work from any browser or
-# from curl. path_info always begins with "/", which [1..] drops.
+# The link name (and optional "<space>search terms") comes from the URL path, so
+# http://localhost:8080/wiki and http://localhost:8080/yt rory sutherland work from
+# any browser or from curl — the Chrome shortcut is only a shorthand for typing one
+# of these. path_info always begins with "/", which [1..] drops.
 get '/*' do
   # Puma leaves PATH_INFO percent-encoded; unescape decodes it query-style, so
   # both "%20" and "+" become spaces. "+" is how Chrome's keyword encodes spaces

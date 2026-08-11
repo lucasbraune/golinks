@@ -119,6 +119,71 @@ describe 'golinks server' do
     end
   end
 
+  describe 'the setup callout' do
+    it 'is rendered on the link list' do
+      get '/links'
+      assert_includes last_response.body, 'data-setup-callout'
+      assert_includes last_response.body, 'Activate Go Links in Chrome'
+    end
+
+    # Ships with the [hidden] attribute and is unhidden by the inline script, so
+    # a dismissed callout never paints. Rendering it visible would put it on
+    # screen for a frame on every load after the first.
+    it 'ships hidden, for the inline script to unhide' do
+      get '/links'
+      assert_match(/<aside class="setup-callout"[^>]*\shidden>/, last_response.body)
+      assert_match(/localStorage\.getItem\('setupDismissed'\)/, last_response.body)
+    end
+
+    it 'renders the port the server is actually running on' do
+      get '/links'
+      assert_includes last_response.body, "http://localhost:#{PORT}/%s"
+    end
+
+    # tabindex="-1" on every one of them is the point of this example, not an
+    # incidental attribute: four copy buttons in the tab order would sit between
+    # the page and the search box, which is what a keyboard user is actually
+    # heading for. Copying is deliberately mouse-only.
+    it 'offers the four values as click-to-copy buttons, outside the tab order' do
+      get '/links'
+      ['chrome://settings/searchEngines', 'Go Links', 'go', "http://localhost:#{PORT}/%s"].each do |value|
+        assert_match(
+          /<button type="button" class="copyable" data-copyable tabindex="-1" aria-label="Copy #{Regexp.escape(value)}">/,
+          last_response.body
+        )
+      end
+    end
+
+    # Shown to every browser, deliberately: the steps only apply to Chrome, but
+    # which browsers share Chrome's settings screen is a moving target (Brave, Arc
+    # and Chromium send Chrome's UA verbatim; Edge and Opera carry "Chrome/" but
+    # have their own screen), and guessing it wrong hides the one thing a new
+    # install needs. The dismiss button is the answer instead.
+    it 'is rendered whatever the browser claims to be' do
+      ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 ' \
+       '(KHTML, like Gecko) Version/26.5 Safari/605.1.15',
+       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' \
+       '(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0',
+       'curl/8.7.1',
+       ''].each do |ua|
+        get '/links', {}, 'HTTP_USER_AGENT' => ua
+        assert_includes last_response.body, 'data-setup-callout', "missing for UA #{ua.inspect}"
+      end
+    end
+
+    # Both live in the layout, so both are on every page and no route has to say so.
+    # Setting up the shortcut is about the app rather than about one page, and someone
+    # who lands on the add-link form first shouldn't have to reach the list to be told.
+    ['/links', '/links/new'].each do |path|
+      it "renders the callout and its footer control on #{path}" do
+        get path
+        assert_includes last_response.body, 'data-setup-callout'
+        assert_includes last_response.body, 'data-setup-restore'
+        assert_includes last_response.body, 'data-copied-label'
+      end
+    end
+  end
+
   describe 'direct name lookup' do
     it 'redirects a known name to its url' do
       get '/wiki'

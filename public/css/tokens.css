@@ -2,8 +2,7 @@
   /* Both palettes live in one place: light-dark() resolves against the
      element's color-scheme, so switching themes is a single property change
      on :root rather than a duplicated block of dark overrides. Left at
-     "light dark" the page follows the system, which is both the default and
-     what a visitor with JS disabled gets. */
+     "light dark" the page follows the system, which is the default. */
   color-scheme: light dark;
 
   --bg: light-dark(#f6f6f3, #0a0b0d);

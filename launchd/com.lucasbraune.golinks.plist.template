@@ -7,13 +7,29 @@
 
     <!--
       Per-user LaunchAgent: starts the server at login, running as the
-      logged-in user (no root), with the server's defaults: port 51242 on all
-      interfaces. Restarts it if it crashes (KeepAlive).
+      logged-in user (no root), on port 51242 (set below). Restarts it if it
+      crashes (KeepAlive).
     -->
     <key>ProgramArguments</key>
     <array>
         <string>__REPO_DIR__/launchd/golinks</string>
     </array>
+
+    <!--
+      This is the one place the service's port is chosen. server.rb defaults to
+      8080, which is the development port — the port you get from `ruby server.rb`
+      — so pinning 51242 here keeps the always-on service clear of a server
+      started by hand to try something out, instead of the two fighting over one
+      port. It follows that 51242 is what the Chrome site-search entry has to
+      point at: this is the server that's always up. launchd's environment wins
+      over .env, since server.rb only falls back to the file for values the real
+      environment doesn't already set.
+    -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PORT</key>
+        <string>51242</string>
+    </dict>
 
     <key>WorkingDirectory</key>
     <string>__REPO_DIR__</string>

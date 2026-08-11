@@ -1,11 +1,20 @@
-/* Status on the left, theme control on the right — the same split as
-   .heading-row at the top of the page, so the two ends of the page rhyme. */
+/* Status on the left, controls on the right — the same split as .heading-row at
+   the top of the page, so the two ends of the page rhyme. */
 .page-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   margin-top: 3rem;
+}
+
+/* Groups the footer's buttons so the theme toggle keeps its place at the right
+   edge when the setup-instructions control appears beside it, rather than
+   space-between spreading three children across the whole width. */
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .eyebrow {
